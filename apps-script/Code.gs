@@ -144,12 +144,13 @@ function addPerson(data) {
       norm_(r.Nome) === norm_(name) && norm_(r.Telefone) === norm_(phone) && r.Status !== 'INATIVO'
     );
     if (duplicate) throw new Error('Já existe cadastro ativo com este nome e telefone.');
+    if (data.viagemId && !rows_('VIAGENS').some(r => r.ViagemID === data.viagemId && r.Status !== 'CANCELADA')) {
+      throw new Error('A viagem selecionada não está disponível. Nenhum cadastro foi gravado.');
+    }
     const id = newId_('P');
     sh.appendRow([id, name, phone, clean_(data.observacoes || ''), new Date(), new Date(), 'ATIVO', clean_(data.tipoDocumento || ''), clean_(data.numeroDocumento || ''), clean_(data.orgaoEmissor || '')]);
     let participacaoId = '';
     if (data.viagemId) {
-      const trip = rows_('VIAGENS').find(r => r.ViagemID === data.viagemId && r.Status !== 'CANCELADA');
-      if (!trip) throw new Error('A viagem selecionada não está disponível. O cadastro da pessoa foi salvo; selecione uma viagem válida para vinculá-la.');
       participacaoId = newId_('PV');
       sheet_('PARTICIPANTES').appendRow([participacaoId, data.viagemId, id, 'PENDENTE', '', '', 0, '', new Date(), new Date()]);
     }
@@ -513,7 +514,7 @@ function previewBatchImport(tipo, viagemId, matriz) {
         seen.add(key);
       }
     } else {
-      const person = people.find(p => (row.pessoaId && p.PessoaID===row.pessoaId) || (row.nome && norm_(p.Nome)===norm_(row.nome) && (!row.telefone || norm_(p.Telefone)===norm_(row.telefone))) && p.Status==='ATIVO');
+      const person = people.find(p => p.Status==='ATIVO' && ((row.pessoaId && p.PessoaID===row.pessoaId) || (row.nome && norm_(p.Nome)===norm_(row.nome) && (!row.telefone || norm_(p.Telefone)===norm_(row.telefone)))));
       if (!person) { status='ERRO'; motivo='Pessoa não encontrada no cadastro único'; }
       else {
         row.pessoaId = person.PessoaID; row.nome = person.Nome;
@@ -523,7 +524,13 @@ function previewBatchImport(tipo, viagemId, matriz) {
         if (tipo==='pagamentos' && (!row.data || !Number.isFinite(Number(row.valor)) || Number(row.valor)<=0)) { status='ERRO'; motivo='Data ou valor inválido'; }
         if (tipo==='participantes' && row.valorPrevisto && (!Number.isFinite(Number(row.valorPrevisto)) || Number(row.valorPrevisto)<0)) { status='ERRO'; motivo='Valor previsto inválido'; }
         if (tipo==='participantes') seen.add(person.PessoaID);
-        if (tipo==='pagamentos' && part) row.participacaoId=part.ParticipacaoID;
+        if (tipo==='pagamentos' && part) {
+          row.participacaoId=part.ParticipacaoID;
+          const signature = [part.ParticipacaoID,row.data,Number(row.valor),norm_(row.forma),norm_(row.referencia)].join('|');
+          const already = rows_('PAGAMENTOS').some(pg => [pg.ParticipacaoID,pg.Data,Number(pg.Valor),norm_(pg.Forma),norm_(pg.Referencia)].join('|')===signature);
+          if (already || seen.has(signature)) { status='DUPLICADO'; motivo='Lançamento de pagamento já existente ou repetido no arquivo'; }
+          seen.add(signature);
+        }
       }
     }
     if (status==='DUPLICADO') duplicados++;
@@ -551,9 +558,10 @@ function applyBatchImport(tipo, viagemId, matriz) {
       if(tipo==='pessoas'){
         const name=get('nome'), phone=get('telefone'), id=newId_('P');
         sheet_('PESSOAS').appendRow([id,name,phone,get('observacoes'),new Date(),new Date(),'ATIVO',get('tipoDocumento'),get('numeroDocumento'),get('orgaoEmissor')]);
+        if (viagemId) sheet_('PARTICIPANTES').appendRow([newId_('PV'),viagemId,id,'PENDENTE','','',0,'',new Date(),new Date()]);
       } else {
         const people=rows_('PESSOAS');
-        const person=people.find(p=>(get('pessoaId')&&p.PessoaID===get('pessoaId'))||(get('nome')&&norm_(p.Nome)===norm_(get('nome'))&&(!get('telefone')||norm_(p.Telefone)===norm_(get('telefone'))))&&p.Status==='ATIVO');
+        const person=people.find(p=>p.Status==='ATIVO'&&((get('pessoaId')&&p.PessoaID===get('pessoaId'))||(get('nome')&&norm_(p.Nome)===norm_(get('nome'))&&(!get('telefone')||norm_(p.Telefone)===norm_(get('telefone'))))));
         const part=rows_('PARTICIPANTES').find(p=>p.ViagemID===viagemId&&p.PessoaID===person.PessoaID&&p.Status!=='CANCELADO');
         if(tipo==='participantes'){
           sheet_('PARTICIPANTES').appendRow([newId_('PV'),viagemId,person.PessoaID,'PENDENTE','','',Number(get('valorPrevisto')||0),get('observacoes'),new Date(),new Date()]);
