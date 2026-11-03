@@ -6,7 +6,7 @@
 
 const APP = Object.freeze({
   name: 'Sistema de Viagens',
-  version: '0.1.0-dev.4',
+  version: '0.1.0-dev.5',
   sheets: {
     PAINEL: [],
     PESSOAS: ['PessoaID', 'Nome', 'Telefone', 'Observacoes', 'CriadoEm', 'AtualizadoEm', 'Status', 'TipoDocumento', 'NumeroDocumento', 'OrgaoEmissor'],
