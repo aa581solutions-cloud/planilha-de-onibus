@@ -468,6 +468,33 @@ function reportDate_(value){return value instanceof Date?Utilities.formatDate(va
 
 
 /** Importação em lote: recebe matriz com cabeçalho na primeira linha. */
+
+function importAmount_(value) {
+  if (typeof value === 'number') return value;
+  let s = clean_(value).replace(/R\$/gi,'').replace(/\s/g,'');
+  if (s.includes(',')) s = s.replace(/\./g,'').replace(',','.');
+  return Number(s);
+}
+function importDateKey_(value) {
+  if (value instanceof Date) return Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  const s = clean_(value);
+  let m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (m) return m[3]+'-'+m[2]+'-'+m[1];
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? m[1]+'-'+m[2]+'-'+m[3] : s;
+}
+function importDateValue_(value) {
+  if (value instanceof Date) return value;
+  const s = clean_(value);
+  let m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (m) return new Date(Number(m[3]),Number(m[2])-1,Number(m[1]));
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (m) return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+  const d = new Date(s);
+  if (isNaN(d.getTime())) throw new Error('Data inválida na importação: '+s);
+  return d;
+}
+
 function previewBatchImport(tipo, viagemId, matriz) {
   if (!Array.isArray(matriz) || matriz.length < 2) throw new Error('Inclua o cabeçalho e pelo menos uma linha de dados.');
   if (!['pessoas','participantes','pagamentos'].includes(tipo)) throw new Error('Tipo de importação inválido.');
@@ -511,7 +538,7 @@ function previewBatchImport(tipo, viagemId, matriz) {
       else {
         const key = norm_(row.nome)+'|'+norm_(row.telefone);
         const sameName = people.filter(p => norm_(p.Nome)===norm_(row.nome) && p.Status!=='INATIVO');
-        if (!row.telefone && sameName.length) { status='ERRO'; motivo='Nome já existe sem telefone para diferenciar; confira a pessoa antes de importar'; }
+        if (!row.telefone && (sameName.length || seen.has(key))) { status='ERRO'; motivo='Nome sem telefone para diferenciar; confira se é homônimo antes de importar'; }
         else if (seen.has(key) || (row.telefone && sameName.some(p => norm_(p.Telefone)===norm_(row.telefone)))) { status='DUPLICADO'; motivo='Pessoa já cadastrada ou repetida no arquivo'; }
         seen.add(key);
       }
@@ -524,13 +551,13 @@ function previewBatchImport(tipo, viagemId, matriz) {
         const part = parts.find(p => p.ViagemID===viagemId && p.PessoaID===person.PessoaID && p.Status!=='CANCELADO');
         if (tipo==='participantes' && (part || seen.has(person.PessoaID))) { status='DUPLICADO'; motivo='Pessoa já vinculada a esta viagem'; }
         if (tipo==='pagamentos' && !part) { status='ERRO'; motivo='Pessoa ainda não está vinculada a esta viagem'; }
-        if (tipo==='pagamentos' && (!row.data || !Number.isFinite(Number(row.valor)) || Number(row.valor)<=0)) { status='ERRO'; motivo='Data ou valor inválido'; }
-        if (tipo==='participantes' && row.valorPrevisto && (!Number.isFinite(Number(row.valorPrevisto)) || Number(row.valorPrevisto)<0)) { status='ERRO'; motivo='Valor previsto inválido'; }
+        if (tipo==='pagamentos' && (!row.data || !Number.isFinite(importAmount_(row.valor)) || importAmount_(row.valor)<=0)) { status='ERRO'; motivo='Data ou valor inválido'; }
+        if (tipo==='participantes' && row.valorPrevisto && (!Number.isFinite(importAmount_(row.valorPrevisto)) || importAmount_(row.valorPrevisto)<0)) { status='ERRO'; motivo='Valor previsto inválido'; }
         if (tipo==='participantes') seen.add(person.PessoaID);
         if (tipo==='pagamentos' && part) {
           row.participacaoId=part.ParticipacaoID;
-          const signature = [part.ParticipacaoID,row.data,Number(row.valor),norm_(row.forma),norm_(row.referencia)].join('|');
-          const already = rows_('PAGAMENTOS').some(pg => [pg.ParticipacaoID,pg.Data,Number(pg.Valor),norm_(pg.Forma),norm_(pg.Referencia)].join('|')===signature);
+          const signature = [part.ParticipacaoID,importDateKey_(row.data),importAmount_(row.valor),norm_(row.forma),norm_(row.referencia)].join('|');
+          const already = rows_('PAGAMENTOS').some(pg => [pg.ParticipacaoID,importDateKey_(pg.Data),importAmount_(pg.Valor),norm_(pg.Forma),norm_(pg.Referencia)].join('|')===signature);
           if (already || seen.has(signature)) { status='DUPLICADO'; motivo='Lançamento de pagamento já existente ou repetido no arquivo'; }
           seen.add(signature);
         }
@@ -569,9 +596,9 @@ function applyBatchImport(tipo, viagemId, matriz) {
         if(!person) throw new Error('A identificação da pessoa ficou ambígua ou não foi localizada. Nenhuma linha desta operação deve ser presumida.');
         const part=rows_('PARTICIPANTES').find(p=>p.ViagemID===viagemId&&p.PessoaID===person.PessoaID&&p.Status!=='CANCELADO');
         if(tipo==='participantes'){
-          sheet_('PARTICIPANTES').appendRow([newId_('PV'),viagemId,person.PessoaID,'PENDENTE','','',Number(get('valorPrevisto')||0),get('observacoes'),new Date(),new Date()]);
+          sheet_('PARTICIPANTES').appendRow([newId_('PV'),viagemId,person.PessoaID,'PENDENTE','','',(get('valorPrevisto')?importAmount_(get('valorPrevisto')):0),get('observacoes'),new Date(),new Date()]);
         } else {
-          sheet_('PAGAMENTOS').appendRow([newId_('PG'),part.ParticipacaoID,get('data'),Number(get('valor')),get('forma'),get('referencia'),get('observacoes'),new Date()]);
+          sheet_('PAGAMENTOS').appendRow([newId_('PG'),part.ParticipacaoID,importDateValue_(get('data')),importAmount_(get('valor')),get('forma'),get('referencia'),get('observacoes'),new Date()]);
         }
       }
       imported++;
