@@ -118,8 +118,8 @@ function refresh(){
     fill('activeTripSelect',options,'Selecione uma viagem');
     ['paymentTrip','vehicleTrip','seatTrip','reportTrip'].forEach(id=>fill(id,trips,'Viagem ativa'));
 
-    if(t.length===1) {
-      chooseActiveTrip(t[0].id);
+    if(trips.length===1) {
+      chooseActiveTrip(trips[0].id);
     } else if(activeTripId && !trips.some(x=>x.id===activeTripId)) {
       chooseActiveTrip('');
     } else if(trips.length>1 && !activeTripId) {
