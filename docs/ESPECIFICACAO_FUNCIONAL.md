@@ -45,7 +45,8 @@ Construir uma solução de gestão de viagens e transporte que opere continuamen
 7. Relatórios.
 8. Pesquisa e consulta.
 9. Configurações.
-10. Impressão das listas gerais.
+10. Importação em lote de pessoas, participantes e pagamentos (Excel XLSX, CSV e colagem de dados), com pré-visualização, validação e confirmação.
+12. Impressão das listas gerais.
 11. Pré-visualização dos documentos antes de imprimir ou salvar em PDF.
 
 ## 5. Estrutura lógica de dados
@@ -108,3 +109,28 @@ A entrega será considerada conforme quando:
 ## 10. Controle de alterações
 
 Toda mudança de requisito deve ser registrada aqui ou em documento complementar, indicando a decisão que a autorizou. Em caso de divergência, prevalece a instrução mais recente e explicitamente confirmada pelo usuário.
+
+
+## 11. Seleção da viagem ativa e fluxo de participantes
+
+- Com nenhuma viagem cadastrada, orientar o usuário a criar a primeira.
+- Com apenas uma viagem ativa, selecioná-la automaticamente.
+- Com duas ou mais viagens disponíveis, solicitar explicitamente que o usuário identifique a viagem em operação.
+- A viagem identificada no seletor principal é o contexto das telas de participantes, pagamentos, veículos, assentos, relatórios e importação.
+- Ao cadastrar uma pessoa nova enquanto houver viagem ativa, criar o cadastro único em PESSOAS e vinculá-la automaticamente à viagem ativa em PARTICIPANTES.
+- Pessoas já cadastradas podem ser adicionadas à viagem ativa sem duplicar o cadastro.
+- A tela de participantes não deve pedir novamente a viagem; deve utilizar a viagem ativa identificada no topo.
+- Uma pessoa existente só passa a ser participante quando o vínculo em PARTICIPANTES for criado.
+
+## 12. Importação em lote
+
+- Disponibilizar área própria para importar pessoas, participantes e pagamentos.
+- Aceitar Excel XLSX, CSV e dados colados diretamente de outra planilha.
+- A primeira linha deve conter cabeçalhos reconhecíveis.
+- Mostrar prévia por linha, classificando registros prontos, duplicados e inválidos antes de gravar.
+- A importação deve ser aditiva: nunca apagar nem substituir cadastros ou histórico existente.
+- Pessoas são identificadas por nome e telefone quando disponível; casos ambíguos não devem ser mesclados automaticamente.
+- Participantes e pagamentos exigem viagem ativa; participantes devem referenciar pessoas já cadastradas e pagamentos devem referenciar participantes já vinculados.
+- Registros duplicados são ignorados e linhas inválidas ficam fora da confirmação.
+- O usuário confirma explicitamente a gravação após conferir a prévia.
+- XLSX utiliza conversão temporária via serviço avançado Google Drive API; o arquivo temporário deve ser enviado para a lixeira após a leitura.
