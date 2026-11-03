@@ -30,4 +30,4 @@ O desenvolvimento deve obedecer às instruções e decisões confirmadas pelo us
 - [Manifesto](apps-script/appsscript.json)
 
 ## Estado atual
-Versão 0.1.0-dev.6 (em desenvolvimento): inclui identificação central da viagem ativa, vínculo automático de novos cadastros à viagem selecionada e importação em lote com pré-visualização para pessoas, participantes e pagamentos. Esta versão está no ramo DEV, ainda não foi executada nem validada em uma planilha Google real. A planilha do usuário não foi alterada. Não considerar pronto ou publicado.
+Versão 0.1.0-dev.7 (em desenvolvimento): inclui identificação central da viagem ativa, importação em lote e programação diária de transporte, com ida e volta configuráveis para cada dia do evento. Assembleia usa um dia como padrão; Congresso, três; Betel, território isolado e outros eventos permitem personalização. Esta versão está no ramo DEV, ainda não foi executada nem validada em uma planilha Google real. A planilha do usuário não foi alterada. Não considerar pronto ou publicado.
