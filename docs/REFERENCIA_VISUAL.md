@@ -1,15 +1,13 @@
-# Referência visual — Sistema de Viagens / Betel 90
+# Referências visuais oficiais — Betel 90
 
-- **Arquivo de referência:** [previa-betel90-index3.html](./previa-betel90-index3.html)
-- **Origem:** prévia HTML criada em conversa anterior e recuperada da Biblioteca do ChatGPT.
-- **Identificação confirmada:** `index(3).html`, conferida em 31/10/2026.
-- **Uso neste repositório:** referência visual para reconstruir a interface do projeto Planilha de Ônibus no Google Planilhas + Apps Script.
-- **Direção visual:** fundo azul-marinho (`#07111f`), painéis azul profundo (`#0e2035`), bordas azuladas e destaque ciano (`#45c9ff`); cartões de indicadores; seções de dados da viagem, transportes, participantes/assentos, pagamentos/relatórios e aparência; mapa de assentos com estados visuais.
+As três imagens enviadas pelo usuário em 03/11/2026, preservadas na raiz do repositório, são as referências visuais oficiais do projeto:
 
-## Limites conhecidos da prévia
+1. [Painel Betel 90 — Sistema de Viagens](../Painel%20Betel%2090%20%E2%80%94%20Sistema%20de%20Viagens.png)
+2. [Painel Betel 90 — Sistema de Viagens — tela 2](../Painel%20Betel%2090_%20Sistema%20de%20Viagens-1.png)
+3. [Painel Betel 90 — Sistema de Viagens — tela 3](../Painel%20Betel%2090_%20Sistema%20de%20Viagens-2.png)
 
-Este HTML é uma referência de aparência e organização, não uma implementação funcional pronta. A própria prévia chama funções Apps Script (`getAppData()` e `getSeats()`) que não estão incluídas no arquivo, e alguns botões não têm ações ligadas. Não deve ser publicada ou instalada como sistema final sem reconstrução e testes.
+As imagens não foram editadas. Devem orientar fielmente a estrutura, disposição, cores, tipografia, espaçamentos, navegação e aparência das telas reconstruídas em Google Planilhas + Apps Script.
 
-## Regra de preservação
+A referência HTML antiga index(3).html não corresponde às prévias enviadas hoje e não é a referência visual oficial. Ela permanece apenas como registro histórico.
 
-O arquivo foi preservado como referência visual, sem importar dados de planilhas antigas. A lógica e os dados do produto continuam sendo os definidos na especificação atual deste repositório. A prévia não substitui o código DEV existente.
+Não importar dados antigos. Preservar o código DEV existente. A próxima atividade é comparar apps-script/Main.html com as três imagens, registrar diferenças e ajustar a interface em nova versão DEV. Não publicar em produção nesta etapa.
