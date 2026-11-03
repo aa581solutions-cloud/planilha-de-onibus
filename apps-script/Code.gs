@@ -28,30 +28,80 @@ function onOpen() {
     .addToUi();
 }
 
-function setupBetel90() {
-  const ss = SpreadsheetApp.getActive();
-  Object.keys(APP.sheets).forEach(function(name) {
-    let sh = ss.getSheetByName(name);
-    if (!sh) sh = ss.insertSheet(name);
-    const headers = APP.sheets[name];
-    if (headers.length && sh.getLastRow() === 0) {
-      sh.getRange(1, 1, 1, headers.length).setValues([headers]);
-      sh.setFrozenRows(1);
-      sh.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-      sh.autoResizeColumns(1, headers.length);
-    } else if (headers.length) {
-      const current = sh.getRange(1, 1, 1, headers.length).getDisplayValues()[0];
-      const mismatch = headers.some((h, i) => current[i] !== h);
-      if (mismatch) throw new Error('Cabeçalho divergente na aba ' + name + '. Nenhuma alteração foi feita nela.');
-    }
-  });
-  const panel = ss.getSheetByName('PAINEL');
-  if (panel && panel.getLastRow() === 0) {
-    panel.getRange('A1').setValue(APP.name);
-    panel.getRange('A2').setValue('Estrutura criada. Cadastros ainda vazios.');
-    panel.getRange('A1').setFontSize(16).setFontWeight('bold');
+function setupSistemaViagens() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) {
+    throw new Error('Esta função precisa ser executada pelo Apps Script vinculado à planilha Sistema de Viagens.');
   }
-  SpreadsheetApp.getUi().alert('Sistema de Viagens: estrutura verificada. Nenhum cadastro foi inserido e nenhum dado existente foi apagado.');
+
+  const estruturas = APP.sheets;
+  const criadas = [];
+  const verificadas = [];
+
+  Object.keys(estruturas).forEach(function(nome) {
+    let aba = ss.getSheetByName(nome);
+
+    if (!aba) {
+      aba = ss.insertSheet(nome);
+      criadas.push(nome);
+    }
+
+    const cabecalhos = estruturas[nome];
+
+    if (cabecalhos.length === 0) {
+      verificadas.push(nome);
+      return;
+    }
+
+    if (aba.getLastRow() === 0) {
+      aba.getRange(1, 1, 1, cabecalhos.length).setValues([cabecalhos]);
+      aba.setFrozenRows(1);
+      aba.getRange(1, 1, 1, cabecalhos.length)
+        .setFontWeight('bold')
+        .setBackground('#17365D')
+        .setFontColor('#FFFFFF');
+      aba.autoResizeColumns(1, cabecalhos.length);
+      verificadas.push(nome);
+      return;
+    }
+
+    const atual = aba.getRange(1, 1, 1, cabecalhos.length).getDisplayValues()[0];
+    const compativel = cabecalhos.every(function(titulo, indice) {
+      return atual[indice] === titulo;
+    });
+
+    if (!compativel) {
+      throw new Error(
+        'A aba "' + nome + '" já contém dados ou cabeçalhos diferentes. ' +
+        'Por segurança, a inicialização foi interrompida sem apagar ou substituir conteúdo.'
+      );
+    }
+
+    verificadas.push(nome);
+  });
+
+  const painel = ss.getSheetByName('PAINEL');
+  if (painel && painel.getLastRow() === 0) {
+    painel.getRange('A1').setValue(APP.name);
+    painel.getRange('A2').setValue('Estrutura inicial pronta. Cadastros vazios.');
+    painel.getRange('A1').setFontSize(16).setFontWeight('bold');
+  }
+
+  SpreadsheetApp.flush();
+
+  SpreadsheetApp.getUi().alert(
+    'Sistema de Viagens',
+    'Preparação concluída.\n\nAbas criadas: ' +
+      (criadas.length ? criadas.join(', ') : 'nenhuma (já existiam)') +
+      '\nAbas verificadas: ' + verificadas.join(', ') +
+      '\n\nNenhum cadastro foi inserido e nenhum dado foi apagado.',
+    SpreadsheetApp.getUi().ButtonSet.OK
+  );
+}
+
+// Compatibilidade com o nome da função usado na primeira orientação.
+function setupBetel90() {
+  return setupSistemaViagens();
 }
 
 function showMainPanel() {
