@@ -30,4 +30,4 @@ O desenvolvimento deve obedecer às instruções e decisões confirmadas pelo us
 - [Manifesto](apps-script/appsscript.json)
 
 ## Estado atual
-Versão 0.1.0-dev.4: interface reconstruída com navegação lateral e telas de painel, pessoas, viagens, inscrições, pagamentos, veículos, assentos, relatórios, pesquisa e configurações; identidade textual alterada para Sistema de Viagens. Backend preservado, com atualização da identificação e versão. A interface ainda não foi executada nem validada em uma planilha Google real. Algumas áreas visuais das referências (foto/endereço de pessoa e configurações persistentes, por exemplo) ainda dependem de ampliação do modelo de dados/backend. Não considerar pronto ou publicado.
+Versão 0.1.0-dev.6 (em desenvolvimento): inclui identificação central da viagem ativa, vínculo automático de novos cadastros à viagem selecionada e importação em lote com pré-visualização para pessoas, participantes e pagamentos. Esta versão está no ramo DEV, ainda não foi executada nem validada em uma planilha Google real. A planilha do usuário não foi alterada. Não considerar pronto ou publicado.
