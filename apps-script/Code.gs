@@ -377,3 +377,17 @@ function getReportData(viagemId,tipo){
 }
 
 function reportDate_(value){return value instanceof Date?Utilities.formatDate(value,Session.getScriptTimeZone(),'dd/MM/yyyy'):String(value||'');}
+
+function setParticipantStatus(participacaoId,status){
+  if(!participacaoId) throw new Error('Selecione um participante.');
+  if(!['PENDENTE','CONFIRMADO'].includes(String(status||'').toUpperCase())) throw new Error('Situação inválida.');
+  return withLock_(()=>{
+    const sh=sheet_('PARTICIPANTES'), row=findRowById_(sh,'ParticipacaoID',participacaoId);
+    if(!row) throw new Error('Participação não encontrada.');
+    const current=sh.getRange(row,4).getValue();
+    if(current==='CANCELADO') throw new Error('Inscrição cancelada não pode ser reativada por esta tela.');
+    sh.getRange(row,4).setValue(String(status).toUpperCase());
+    sh.getRange(row,10).setValue(new Date());
+    return {ok:true,status:String(status).toUpperCase()};
+  });
+}
