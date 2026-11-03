@@ -34,6 +34,8 @@
     <button onclick="show('enroll')">Inscrições</button>
     <button onclick="show('vehicle')">Veículos</button>
     <button onclick="show('payment')">Pagamentos</button>
+    <button onclick="show('seats')">Assentos</button>
+    <button onclick="show('reports')">Relatórios</button>
   </nav>
   <section id="person" class="panel">
     <h3>Novo cadastro de pessoa</h3>
@@ -77,8 +79,10 @@
     <label>Forma de pagamento</label><input id="paymentMethod" placeholder="Dinheiro, PIX, transferência...">
     <button onclick="registerPayment()">Salvar pagamento</button><div id="paymentStatus" class="status"></div>
   </section>
+  <section id="seats" class="panel hidden"><h3>Mapa de assentos</h3><label>Viagem *</label><select id="seatTrip" onchange="loadSeatMap" required></select><label>Participante *</label><select id="seatParticipant" required></select><label>Veículo e assento livre *</label><select id="seatChoice" required></select><button onclick="assignSeat()">Atribuir assento</button><div id="seatMap" class="list"></div><div id="seatStatus" class="status"></div></section>
+  <section id="reports" class="panel hidden"><h3>Resumo e listas</h3><label>Viagem *</label><select id="reportTrip" required></select><button onclick="previewReport()">Pré-visualizar relatório</button><div id="reportArea" class="list"></div><button class="secondary" onclick="printReport()">Imprimir / salvar PDF</button></section>
   <script>
-    function show(id){['person','trip','enroll','vehicle','payment'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));}
+    function show(id){['person','trip','enroll','vehicle','payment','seats','reports'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));}
     function msg(id,text){document.getElementById(id).textContent=text;}
     function call(name,args,statusId,done){
       const runner=google.script.run.withSuccessHandler(r=>{msg(statusId,'Concluído. '+(r&&r.id?'Código: '+r.id:''));if(done)done(r);refresh();})
@@ -96,12 +100,16 @@
           .map(x=>'<div class="stat"><div class="num">'+x[1]+'</div>'+x[0]+'</div>').join('');
       }).getAppSummary();
       google.script.run.withSuccessHandler(p=>fill('enrollPerson',p,'Selecione uma pessoa')).listPeople();
-      google.script.run.withSuccessHandler(t=>{fill('enrollTrip',t,'Selecione uma viagem');fill('vehicleTrip',t,'Selecione uma viagem');fill('paymentTrip',t,'Selecione uma viagem');}).listTrips();
+      google.script.run.withSuccessHandler(t=>{fill('enrollTrip',t,'Selecione uma viagem');fill('vehicleTrip',t,'Selecione uma viagem');fill('paymentTrip',t,'Selecione uma viagem');fill('seatTrip',t,'Selecione uma viagem');fill('reportTrip',t,'Selecione uma viagem');}).listTrips();
     }
     function enroll(){call('enrollParticipant',{viagemId:document.getElementById('enrollTrip').value,pessoaId:document.getElementById('enrollPerson').value,valorPrevisto:document.getElementById('expected').value},'enrollStatus');}
     function createVehicle(){call('createVehicle',{viagemId:document.getElementById('vehicleTrip').value,tipo:document.getElementById('vehicleType').value,identificacao:document.getElementById('vehicleName').value,capacidade:document.getElementById('vehicleCapacity').value},'vehicleStatus');}
     function loadParticipants(){const id=document.getElementById('paymentTrip').value;google.script.run.withSuccessHandler(p=>{const el=document.getElementById('paymentParticipant');el.innerHTML='<option value="">Selecione</option>'+p.map(x=>'<option value="'+x.id+'">'+x.nome+'</option>').join('');}).listParticipants(id);}
     function registerPayment(){call('registerPayment',{participacaoId:document.getElementById('paymentParticipant').value,data:document.getElementById('paymentDate').value,valor:document.getElementById('paymentAmount').value,forma:document.getElementById('paymentMethod').value},'paymentStatus');}
+    function loadSeatMap(){const trip=document.getElementById('seatTrip').value;google.script.run.withSuccessHandler(p=>{const el=document.getElementById('seatParticipant');el.innerHTML='<option value="">Selecione</option>'+p.map(x=>'<option value="'+x.id+'">'+x.nome+'</option>').join('');}).listParticipants(trip);google.script.run.withSuccessHandler(s=>{const free=s.filter(x=>x.status==='LIVRE');document.getElementById('seatChoice').innerHTML='<option value="">Selecione veículo/assento</option>'+free.map(x=>'<option value="'+x.veiculoId+'|'+x.numero+'">'+x.veiculo+' — assento '+x.numero+'</option>').join('');document.getElementById('seatMap').innerHTML=s.map(x=>x.veiculo+' / '+x.numero+': '+(x.status==='OCUPADO'?x.passageiro:'Livre')).join('<br>');}).getSeatMap(trip);}
+    function assignSeat(){const choice=document.getElementById('seatChoice').value.split('|');if(choice.length!==2){msg('seatStatus','Selecione um assento livre.');return;}call('assignSeat',{participacaoId:document.getElementById('seatParticipant').value,veiculoId:choice[0],numeroAssento:choice[1]},'seatStatus',loadSeatMap);}
+    function previewReport(){const trip=document.getElementById('reportTrip').value;google.script.run.withSuccessHandler(r=>{reportHtml='<h2>'+r.trip.nome+'</h2><p>'+r.trip.destino+' — '+r.trip.dataIda+'</p>'+'<p>Inscritos: '+r.totals.inscritos+' | Previsto: R$ '+r.totals.previsto.toFixed(2)+' | Pago: R$ '+r.totals.pago.toFixed(2)+' | Saldo: R$ '+r.totals.saldo.toFixed(2)+'</p>'+'<h3>Participantes</h3><ol>'+r.participants.map(p=>'<li>'+p.nome+' — '+p.status+' — assento '+(p.assento||'—')+'</li>').join('')+'</ol>'+'<h3>Veículos</h3><ul>'+r.vehicles.map(v=>'<li>'+v.identificacao+' ('+v.tipo+'): '+v.ocupados+' ocupados / '+v.livres+' livres</li>').join('')+'</ul>';document.getElementById('reportArea').innerHTML=reportHtml;}).withFailureHandler(e=>msg('reportArea',e.message)).getTripReport(trip);}
+    function printReport(){if(!reportHtml){msg('reportArea','Gere a pré-visualização antes de imprimir.');return;}const w=window.open('','_blank');w.document.write('<html><head><title>Relatório Betel 90</title><style>body{font:12px Arial;padding:24px;color:#123}h2{color:#1769aa}li{margin:5px 0}</style></head><body>'+reportHtml+'</body></html>');w.document.close();w.focus();w.print();}
     refresh();
   </script>
 </body>
