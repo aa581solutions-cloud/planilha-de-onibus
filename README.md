@@ -28,4 +28,4 @@ O desenvolvimento deve obedecer às instruções e decisões confirmadas pelo us
 - [Manifesto](apps-script/appsscript.json)
 
 ## Estado atual
-Versão 0.1.0-dev.1: documentação, estrutura técnica e protótipo inicial de formulários no repositório. Ainda não existe uma planilha Google real criada ou publicada. A interface ainda não é a versão visual final aprovada e faltam relatórios, impressão/PDF e testes completos.
+Versão 0.1.0-dev.2: documentação, backend inicial, formulários, consulta/atribuição de assentos e prévia básica de resumo/ impressão no repositório. Ainda não existe uma planilha Google real criada ou publicada. A interface ainda não reproduz a prévia visual final aprovada; faltam as listas completas, relatórios detalhados, testes completos e instalação na conta Google.
