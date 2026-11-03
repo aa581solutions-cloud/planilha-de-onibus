@@ -193,15 +193,18 @@ function addTrip(data) {
     if (i && d.data <= activeDays[i - 1].data) throw new Error('As datas da programação devem estar em ordem crescente e sem repetição.');
   });
   return withLock_(() => {
+    // Verifica as duas abas antes de gravar para evitar viagem parcial.
+    const tripsSheet = sheet_('VIAGENS');
+    const scheduleSheet = sheet_('PROGRAMACAO');
     const id = newId_('V');
     const firstDate = activeDays[0].data;
     const lastDate = activeDays[activeDays.length - 1].data;
-    sheet_('VIAGENS').appendRow([
+    tripsSheet.appendRow([
       id, clean_(data.nome), firstDate, lastDate,
       clean_(data.destino || ''), 'PLANEJADA', clean_(data.observacoes || ''), new Date(),
       clean_(data.tipoEvento), activeDays.length
     ]);
-    const sh = sheet_('PROGRAMACAO');
+    const sh = scheduleSheet;
     const rows = schedule.map((d, i) => [
       newId_('PR'), id, d.data, d.ativo ? 'SIM' : 'NAO',
       d.ativo ? d.horaIda : '', d.ativo ? d.horaVolta : '', i + 1, new Date()
