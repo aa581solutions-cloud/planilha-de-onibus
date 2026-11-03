@@ -1,12 +1,12 @@
 /**
- * Planilha de Ônibus / Betel 90
+ * Sistema de Viagens
  * Backend Google Apps Script — base inicial.
  * Inicialização não destrutiva: não apaga conteúdo existente.
  */
 
 const APP = Object.freeze({
-  name: 'Planilha de Ônibus — Betel 90',
-  version: '0.1.0-dev.3',
+  name: 'Sistema de Viagens',
+  version: '0.1.0-dev.4',
   sheets: {
     PAINEL: [],
     PESSOAS: ['PessoaID', 'Nome', 'Telefone', 'Observacoes', 'CriadoEm', 'AtualizadoEm', 'Status'],
@@ -21,7 +21,7 @@ const APP = Object.freeze({
 
 function onOpen() {
   SpreadsheetApp.getUi()
-    .createMenu('Betel 90')
+    .createMenu('Sistema de Viagens')
     .addItem('Abrir painel', 'showMainPanel')
     .addSeparator()
     .addItem('Preparar estrutura (não apaga dados)', 'setupBetel90')
@@ -51,12 +51,12 @@ function setupBetel90() {
     panel.getRange('A2').setValue('Estrutura criada. Cadastros ainda vazios.');
     panel.getRange('A1').setFontSize(16).setFontWeight('bold');
   }
-  SpreadsheetApp.getUi().alert('Estrutura verificada. Nenhum cadastro foi inserido e nenhum dado existente foi apagado.');
+  SpreadsheetApp.getUi().alert('Sistema de Viagens: estrutura verificada. Nenhum cadastro foi inserido e nenhum dado existente foi apagado.');
 }
 
 function showMainPanel() {
   const html = HtmlService.createHtmlOutputFromFile('Main')
-    .setTitle('Betel 90');
+    .setTitle('Sistema de Viagens');
   SpreadsheetApp.getUi().showSidebar(html);
 }
 
