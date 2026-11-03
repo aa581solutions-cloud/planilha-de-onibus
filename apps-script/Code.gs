@@ -399,7 +399,7 @@ function listPeople() {
 
 function listTrips() {
   return rows_('VIAGENS').filter(r => r.Status !== 'CANCELADA')
-    .map(r => ({ id: r.ViagemID, nome: r.Nome, dataIda: r.DataIda, destino: r.Destino, status: r.Status }));
+    .map(r => ({ id: r.ViagemID, nome: r.Nome, dataIda: r.DataIda, dataRetorno: r.DataRetorno, destino: r.Destino, status: r.Status, tipoEvento: r.TipoEvento || '', diasProgramados: Number(r.DiasProgramados || 0) }));
 }
 
 function listParticipants(viagemId) {
