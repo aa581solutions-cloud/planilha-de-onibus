@@ -43,3 +43,21 @@
 
 ## Critérios de aprovação
 Todos os testes devem passar sem dados de produção. Falhas devem ser corrigidas e registradas antes de considerar a versão pronta.
+
+
+## Seleção da viagem ativa
+- [ ] Sem viagens, conferir orientação para criar a primeira.
+- [ ] Com uma viagem, conferir seleção automática.
+- [ ] Com duas viagens, conferir solicitação de identificação e que nenhum módulo opere sem escolha.
+- [ ] Conferir que pagamentos, veículos, assentos e relatórios acompanham a viagem ativa.
+- [ ] Cadastrar pessoa nova com viagem ativa e conferir criação do cadastro único e do vínculo em PARTICIPANTES.
+- [ ] Adicionar pessoa já cadastrada à viagem ativa sem duplicar PESSOAS.
+
+## Importação em lote
+- [ ] Importar CSV e dados colados de pessoas com cabeçalhos reconhecidos.
+- [ ] Importar XLSX após ativar Google Drive API v3 no projeto Apps Script.
+- [ ] Conferir prévia, duplicidades e linhas inválidas antes da gravação.
+- [ ] Confirmar que cancelar a prévia não grava nada.
+- [ ] Importar participantes somente para a viagem ativa e bloquear duplicidade de vínculo.
+- [ ] Importar pagamentos somente para participantes já vinculados e preservar todos os lançamentos.
+- [ ] Conferir que nenhuma importação apaga ou substitui registros existentes.
