@@ -40,3 +40,10 @@ As abas de dados poderão ficar ocultas quando a interface de operação estiver
 
 ## Limite atual
 O código-fonte será versionado neste repositório. A criação de uma planilha real na conta Google e a autorização/publicação do Apps Script dependem de acesso à conta Google do usuário; não serão simuladas.
+
+
+## Viagem ativa e importação
+- A interface mantém um contexto único de viagem ativa, selecionado automaticamente quando há uma única viagem e exigido quando existem várias.
+- Inclusões rápidas de pessoas criam o cadastro único e, quando informada a viagem ativa, o vínculo de participação correspondente.
+- Importações em lote são validadas antes da gravação e nunca substituem linhas existentes.
+- A leitura de XLSX usa o serviço avançado Google Drive API v3 para conversão temporária; a cópia temporária é enviada à lixeira após a leitura.
