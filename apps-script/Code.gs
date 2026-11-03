@@ -300,3 +300,47 @@ function listVehicles(viagemId) {
   return rows_('VEICULOS').filter(r => r.ViagemID === viagemId && r.Status === 'ATIVO')
     .map(r => ({ id: r.VeiculoID, tipo: r.Tipo, identificacao: r.Identificacao, capacidade: Number(r.Capacidade) }));
 }
+
+
+function getSeatMap(viagemId) {
+  if (!viagemId) return [];
+  return rows_('ASSENTOS').filter(r => r.ViagemID === viagemId).map(s => {
+    const vehicle = rows_('VEICULOS').find(v => v.VeiculoID === s.VeiculoID);
+    const participant = s.ParticipacaoID
+      ? rows_('PARTICIPANTES').find(p => p.ParticipacaoID === s.ParticipacaoID) : null;
+    const person = participant
+      ? rows_('PESSOAS').find(p => p.PessoaID === participant.PessoaID) : null;
+    return {
+      id: s.AssentoID, veiculoId: s.VeiculoID,
+      veiculo: vehicle ? vehicle.Identificacao : '',
+      numero: Number(s.NumeroAssento), status: s.Status,
+      participacaoId: s.ParticipacaoID || '',
+      passageiro: person ? person.Nome : ''
+    };
+  }).sort((a,b) => a.veiculo.localeCompare(b.veiculo) || a.numero-b.numero);
+}
+
+function getTripReport(viagemId) {
+  if (!viagemId) throw new Error('Selecione uma viagem.');
+  const trip = rows_('VIAGENS').find(r => r.ViagemID === viagemId);
+  if (!trip) throw new Error('Viagem não encontrada.');
+  const participants = listParticipants(viagemId);
+  const vehicles = listVehicles(viagemId);
+  const seats = getSeatMap(viagemId);
+  return {
+    trip: { nome: trip.Nome, dataIda: trip.DataIda, dataRetorno: trip.DataRetorno, destino: trip.Destino, status: trip.Status },
+    participants: participants,
+    vehicles: vehicles.map(v => ({
+      ...v,
+      ocupados: seats.filter(s => s.veiculoId === v.id && s.status === 'OCUPADO').length,
+      livres: seats.filter(s => s.veiculoId === v.id && s.status === 'LIVRE').length
+    })),
+    totals: {
+      inscritos: participants.length,
+      previsto: participants.reduce((s,p) => s + Number(p.previsto || 0), 0),
+      pago: participants.reduce((s,p) => s + Number(p.pago || 0), 0),
+      saldo: participants.reduce((s,p) => s + Number(p.saldo || 0), 0)
+    },
+    seats: seats
+  };
+}
