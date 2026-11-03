@@ -134,3 +134,17 @@ Toda mudança de requisito deve ser registrada aqui ou em documento complementar
 - Registros duplicados são ignorados e linhas inválidas ficam fora da confirmação.
 - O usuário confirma explicitamente a gravação após conferir a prévia.
 - XLSX utiliza conversão temporária via serviço avançado Google Drive API; o arquivo temporário deve ser enviado para a lixeira após a leitura.
+
+
+## 13. Programação diária de transporte
+
+- Cada viagem possui uma programação de transporte vinculada por ViagemID, armazenada na aba PROGRAMACAO.
+- Cada registro representa um dia do período e informa se haverá transporte, horário de ida e horário de volta.
+- Assembleia: um dia, com ida pela manhã e retorno à tarde no mesmo dia.
+- Congresso: três dias consecutivos por padrão, com ida e retorno em cada um dos três dias. O responsável pode ajustar horários por dia.
+- Betel e território isolado: período e dias de transporte configuráveis. Cada dia pode ser ativado ou desativado independentemente.
+- Outros eventos também podem usar programação personalizada.
+- Dias sem transporte permanecem no período do evento, mas não geram saída/retorno.
+- A ida e a volta de cada dia devem ser validadas; o horário de retorno deve ser posterior ao horário de ida.
+- A programação diária é a referência para relatórios e planejamento de veículos/saídas. Não presumir uma única ida no primeiro dia e uma única volta no último.
+- A criação da viagem e de seus dias de programação deve ocorrer como uma única operação lógica; não deixar viagem parcialmente cadastrada se a programação for inválida.
