@@ -9,6 +9,11 @@
 - Adicionado controle na interface para marcar participantes como PENDENTE ou CONFIRMADO; a lista de confirmados passa a utilizar esse status.
 - Implementação ainda não executada em uma planilha Google real.
 
+## Referências visuais oficiais — 2026-11-03
+- Confirmadas as três imagens enviadas pelo usuário como referências visuais oficiais.
+- Atualizados README e docs/REFERENCIA_VISUAL.md para apontar às imagens preservadas na raiz do repositório.
+- A referência HTML antiga index(3).html não corresponde às prévias de hoje e não deve orientar a implementação visual.
+- Nenhuma imagem foi editada; nenhum dado antigo foi importado; código DEV e funcionalidades existentes foram preservados.
 
 ## 0.1.0-dev.2 — 2026-11-03
 - Incluídos formulários iniciais de pessoas, viagens, inscrições, veículos e pagamentos.
