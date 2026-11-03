@@ -1,4 +1,4 @@
-# Especificação funcional — Planilha de Ônibus / Betel 90
+# Especificação funcional — Sistema de Viagens
 
 **Estado:** requisitos consolidados para desenvolvimento  
 **Plataforma oficial:** Google Planilhas + Google Apps Script  
