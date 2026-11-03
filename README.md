@@ -3,13 +3,13 @@
 Projeto de gestão de viagens e transporte construído para funcionar no Google Planilhas, com interface de sistema por meio do Google Apps Script.
 
 ## Fonte de verdade
-O desenvolvimento deve obedecer às instruções e decisões confirmadas pelo usuário e à especificação mantida neste repositório. Arquivos antigos não devem ser usados como fonte de dados, lógica ou funcionalidades. As três imagens enviadas ao repositório em 03/11/2026 são as referências visuais oficiais de layout, documentadas em [docs/REFERENCIA_VISUAL.md](docs/REFERENCIA_VISUAL.md). A marca Betel 90 presente nas imagens é o único elemento de identidade a corrigir: o nome correto é Sistema de Viagens.
+O desenvolvimento deve obedecer às instruções e decisões confirmadas pelo usuário e à especificação mantida neste repositório. Arquivos antigos não devem ser usados como fonte de dados, lógica ou funcionalidades. As três imagens enviadas ao repositório em 03/11/2026 são as referências visuais oficiais de layout, documentadas em [docs/REFERENCIA_VISUAL.md](docs/REFERENCIA_VISUAL.md).
 
 ## Decisões obrigatórias
 - Plataforma: Google Planilhas + Google Apps Script.
 - Nome oficial: Sistema de Viagens.
 - Uso: interface com aparência e funcionamento de sistema, sem exposição normal de linhas, colunas e fórmulas.
-- Visual: reproduzir fielmente as três prévias oficiais, substituindo apenas a marca Betel 90 por Sistema de Viagens.
+- Visual: reproduzir fielmente as três prévias oficiais, mantendo a identidade oficial Sistema de Viagens.
 - Dados iniciais: estrutura completamente vazia; todos os cadastros serão inseridos manualmente.
 - Não importar dados antigos.
 - Manter uma única fonte de dados por entidade, evitando cadastros e planilhas redundantes.
