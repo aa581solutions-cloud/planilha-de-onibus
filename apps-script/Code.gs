@@ -6,7 +6,7 @@
 
 const APP = Object.freeze({
   name: 'Planilha de Ônibus — Betel 90',
-  version: '0.1.0-dev.1',
+  version: '0.1.0-dev.2',
   sheets: {
     PAINEL: [],
     PESSOAS: ['PessoaID', 'Nome', 'Telefone', 'Observacoes', 'CriadoEm', 'AtualizadoEm', 'Status'],
