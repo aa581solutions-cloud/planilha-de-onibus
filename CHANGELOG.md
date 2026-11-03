@@ -1,3 +1,10 @@
+# Changelog — Sistema de Viagens
+
+## 0.1.0-dev.5 — 03/11/2026
+- Incluídos tipo, número e órgão emissor do documento como campos opcionais no cadastro rápido e completo de pessoas.
+- Criada atualização de cadastro existente para completar ou corrigir os dados posteriormente.
+- Preparação da estrutura passa a acrescentar as novas colunas de documento ao final da aba PESSOAS, sem apagar os registros existentes.
+
 # Histórico de versões
 
 ## 0.1.0-dev.4 — 2026-11-03
