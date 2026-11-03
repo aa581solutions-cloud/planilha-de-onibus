@@ -6,11 +6,12 @@
 
 const APP = Object.freeze({
   name: 'Sistema de Viagens',
-  version: '0.1.0-dev.6',
+  version: '0.1.0-dev.7',
   sheets: {
     PAINEL: [],
     PESSOAS: ['PessoaID', 'Nome', 'Telefone', 'Observacoes', 'CriadoEm', 'AtualizadoEm', 'Status', 'TipoDocumento', 'NumeroDocumento', 'OrgaoEmissor'],
-    VIAGENS: ['ViagemID', 'Nome', 'DataIda', 'DataRetorno', 'Destino', 'Status', 'Observacoes', 'CriadoEm'],
+    VIAGENS: ['ViagemID', 'Nome', 'DataIda', 'DataRetorno', 'Destino', 'Status', 'Observacoes', 'CriadoEm', 'TipoEvento', 'DiasProgramados'],
+    PROGRAMACAO: ['ProgramacaoID', 'ViagemID', 'Data', 'DiaAtivo', 'HoraIda', 'HoraVolta', 'Ordem', 'CriadoEm'],
     PARTICIPANTES: ['ParticipacaoID', 'ViagemID', 'PessoaID', 'Status', 'VeiculoID', 'NumeroAssento', 'ValorPrevisto', 'Observacoes', 'CriadoEm', 'AtualizadoEm'],
     PAGAMENTOS: ['PagamentoID', 'ParticipacaoID', 'Data', 'Valor', 'Forma', 'Referencia', 'Observacoes', 'RegistradoEm'],
     VEICULOS: ['VeiculoID', 'ViagemID', 'Tipo', 'Identificacao', 'Capacidade', 'Status', 'Observacoes', 'CriadoEm'],
@@ -181,15 +182,40 @@ function updatePerson(data) {
 }
 
 function addTrip(data) {
-  validateRequired_(data, ['nome', 'dataIda']);
+  validateRequired_(data, ['nome', 'tipoEvento']);
+  const schedule = Array.isArray(data.programacao) ? data.programacao : [];
+  if (!schedule.length) throw new Error('Inclua pelo menos um dia na programação.');
+  const activeDays = schedule.filter(d => d.ativo);
+  if (!activeDays.length) throw new Error('Selecione pelo menos um dia com transporte.');
+  activeDays.forEach((d, i) => {
+    validateRequired_(d, ['data', 'horaIda', 'horaVolta']);
+    if (d.horaVolta <= d.horaIda) throw new Error('A volta deve ocorrer depois da ida em ' + d.data + '.');
+    if (i && d.data <= activeDays[i - 1].data) throw new Error('As datas da programação devem estar em ordem crescente e sem repetição.');
+  });
   return withLock_(() => {
     const id = newId_('V');
+    const firstDate = activeDays[0].data;
+    const lastDate = activeDays[activeDays.length - 1].data;
     sheet_('VIAGENS').appendRow([
-      id, clean_(data.nome), data.dataIda, data.dataRetorno || '',
-      clean_(data.destino || ''), 'PLANEJADA', clean_(data.observacoes || ''), new Date()
+      id, clean_(data.nome), firstDate, lastDate,
+      clean_(data.destino || ''), 'PLANEJADA', clean_(data.observacoes || ''), new Date(),
+      clean_(data.tipoEvento), activeDays.length
     ]);
-    return { id: id };
+    const sh = sheet_('PROGRAMACAO');
+    const rows = schedule.map((d, i) => [
+      newId_('PR'), id, d.data, d.ativo ? 'SIM' : 'NAO',
+      d.ativo ? d.horaIda : '', d.ativo ? d.horaVolta : '', i + 1, new Date()
+    ]);
+    if (rows.length) sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+    return { id: id, diasProgramados: activeDays.length };
   });
+}
+
+function listTripSchedule(viagemId) {
+  validateRequired_({viagemId: viagemId}, ['viagemId']);
+  return rows_('PROGRAMACAO').filter(r => r.ViagemID === viagemId)
+    .sort((a, b) => String(a.Data).localeCompare(String(b.Data)))
+    .map(r => ({ data: r.Data, ativo: r.DiaAtivo === 'SIM', horaIda: r.HoraIda || '', horaVolta: r.HoraVolta || '' }));
 }
 
 function enrollParticipant(data) {
