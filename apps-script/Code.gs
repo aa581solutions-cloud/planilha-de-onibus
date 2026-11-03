@@ -434,7 +434,7 @@ function dateKey_(value) {
     return Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM-dd');
   }
   const text = clean_(value);
-  if (/^\\d{4}-\\d{2}-\\d{2}$/.test(text)) return text;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
   return text;
 }
 
