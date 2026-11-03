@@ -36,7 +36,7 @@
 - [ ] Gerar a lista por veículo/assento e conferir ordenação.
 - [ ] Gerar a lista do capitão e conferir passageiros alocados.
 - [ ] Gerar a lista de pagamentos e conferir cada lançamento sem sobrescrever histórico.
-- [ ] Marcar participantes como confirmados após a implementação da gestão de status e conferir a lista de confirmados.
+- [ ] Marcar e desmarcar participantes como confirmados pela interface e conferir a lista de confirmados.
 - [ ] Gerar o resumo geral e conferir indicadores, veículos e valores.
 - [ ] Conferir prévia antes de imprimir.
 - [ ] Imprimir em A4 retrato e A4 paisagem e salvar em PDF.
