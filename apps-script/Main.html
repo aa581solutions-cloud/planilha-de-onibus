@@ -146,7 +146,7 @@ function tripOptionLabel(t){
 }
 
 function formatDateLabel(value){
-  const m=String(value||'').match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+  const m=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
   return m?m[3]+'/'+m[2]+'/'+m[1]:String(value||'');
 }
 function savePerson(e){e.preventDefault();const data=Object.fromEntries(new FormData(e.target).entries());if(!data.pessoaId&&activeTripId)data.viagemId=activeTripId;const quick=e.target.id==='quickPersonForm';const status=quick?'quickPersonStatus':'personStatus';const method=!quick&&data.pessoaId?'updatePerson':'addPerson';call(method,data,status,()=>{e.target.reset();if(!quick)searchPeople()})}
