@@ -56,8 +56,10 @@ function setupBetel90() {
 
 function showMainPanel() {
   const html = HtmlService.createHtmlOutputFromFile('Main')
-    .setTitle('Sistema de Viagens');
-  SpreadsheetApp.getUi().showSidebar(html);
+    .setTitle('Sistema de Viagens')
+    .setWidth(1400)
+    .setHeight(900);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Sistema de Viagens');
 }
 
 function getAppSummary() {
