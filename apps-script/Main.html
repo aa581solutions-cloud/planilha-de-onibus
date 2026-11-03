@@ -79,9 +79,10 @@
     <label>Forma de pagamento</label><input id="paymentMethod" placeholder="Dinheiro, PIX, transferência...">
     <button onclick="registerPayment()">Salvar pagamento</button><div id="paymentStatus" class="status"></div>
   </section>
-  <section id="seats" class="panel hidden"><h3>Mapa de assentos</h3><label>Viagem *</label><select id="seatTrip" onchange="loadSeatMap" required></select><label>Participante *</label><select id="seatParticipant" required></select><label>Veículo e assento livre *</label><select id="seatChoice" required></select><button onclick="assignSeat()">Atribuir assento</button><div id="seatMap" class="list"></div><div id="seatStatus" class="status"></div></section>
+  <section id="seats" class="panel hidden"><h3>Mapa de assentos</h3><label>Viagem *</label><select id="seatTrip" onchange="loadSeatMap()" required></select><label>Participante *</label><select id="seatParticipant" required></select><label>Veículo e assento livre *</label><select id="seatChoice" required></select><button onclick="assignSeat()">Atribuir assento</button><div id="seatMap" class="list"></div><div id="seatStatus" class="status"></div></section>
   <section id="reports" class="panel hidden"><h3>Resumo e listas</h3><label>Viagem *</label><select id="reportTrip" required></select><button onclick="previewReport()">Pré-visualizar relatório</button><div id="reportArea" class="list"></div><button class="secondary" onclick="printReport()">Imprimir / salvar PDF</button></section>
   <script>
+    let reportHtml = '';
     function show(id){['person','trip','enroll','vehicle','payment','seats','reports'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));}
     function msg(id,text){document.getElementById(id).textContent=text;}
     function call(name,args,statusId,done){
