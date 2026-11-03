@@ -6,7 +6,7 @@
 - Impressão configurada para papel A4, com orientação retrato ou paisagem.
 - Corrigido erro de sintaxe na montagem da lista de participantes do formulário de pagamentos.
 - Datas dos relatórios convertidas para texto antes do retorno à interface.
-- A lista de confirmados considera apenas inscrições com status CONFIRMADO; a interface para alterar o status ainda está pendente.
+- Adicionado controle na interface para marcar participantes como PENDENTE ou CONFIRMADO; a lista de confirmados passa a utilizar esse status.
 - Implementação ainda não executada em uma planilha Google real.
 
 
