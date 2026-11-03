@@ -6,7 +6,7 @@
 
 const APP = Object.freeze({
   name: 'Sistema de Viagens',
-  version: '0.1.0-dev.7',
+  version: '0.1.0-dev.8',
   sheets: {
     PAINEL: [],
     PESSOAS: ['PessoaID', 'Nome', 'Telefone', 'Observacoes', 'CriadoEm', 'AtualizadoEm', 'Status', 'TipoDocumento', 'NumeroDocumento', 'OrgaoEmissor'],
@@ -196,13 +196,27 @@ function addTrip(data) {
     // Verifica as duas abas antes de gravar para evitar viagem parcial.
     const tripsSheet = sheet_('VIAGENS');
     const scheduleSheet = sheet_('PROGRAMACAO');
-    const id = newId_('V');
     const firstDate = activeDays[0].data;
     const lastDate = activeDays[activeDays.length - 1].data;
+    const tripName = clean_(data.nome);
+    const tripDestination = clean_(data.destino || '');
+    const tripType = clean_(data.tipoEvento);
+    const duplicate = rows_('VIAGENS').find(r =>
+      r.Status !== 'CANCELADA' &&
+      norm_(r.Nome) === norm_(tripName) &&
+      dateKey_(r.DataIda) === dateKey_(firstDate) &&
+      dateKey_(r.DataRetorno) === dateKey_(lastDate) &&
+      norm_(r.Destino) === norm_(tripDestination) &&
+      norm_(r.TipoEvento) === norm_(tripType)
+    );
+    if (duplicate) {
+      throw new Error('Esta viagem já está cadastrada (código ' + duplicate.ViagemID + '). Nenhum novo registro foi criado.');
+    }
+    const id = newId_('V');
     tripsSheet.appendRow([
-      id, clean_(data.nome), firstDate, lastDate,
-      clean_(data.destino || ''), 'PLANEJADA', clean_(data.observacoes || ''), new Date(),
-      clean_(data.tipoEvento), activeDays.length
+      id, tripName, firstDate, lastDate,
+      tripDestination, 'PLANEJADA', clean_(data.observacoes || ''), new Date(),
+      tripType, activeDays.length
     ]);
     const sh = scheduleSheet;
     const rows = schedule.map((d, i) => [
@@ -401,8 +415,27 @@ function listPeople() {
 }
 
 function listTrips() {
-  return rows_('VIAGENS').filter(r => r.Status !== 'CANCELADA')
-    .map(r => ({ id: r.ViagemID, nome: r.Nome, dataIda: r.DataIda, dataRetorno: r.DataRetorno, destino: r.Destino, status: r.Status, tipoEvento: r.TipoEvento || '', diasProgramados: Number(r.DiasProgramados || 0) }));
+  return rows_('VIAGENS').filter(r => r.Status !== 'CANCELADA' && r.ViagemID)
+    .map(r => ({
+      id: clean_(r.ViagemID),
+      nome: clean_(r.Nome),
+      dataIda: dateKey_(r.DataIda),
+      dataRetorno: dateKey_(r.DataRetorno),
+      destino: clean_(r.Destino),
+      status: clean_(r.Status),
+      tipoEvento: clean_(r.TipoEvento || ''),
+      diasProgramados: Number(r.DiasProgramados || 0)
+    }))
+    .sort((a, b) => a.dataIda.localeCompare(b.dataIda) || a.nome.localeCompare(b.nome));
+}
+
+function dateKey_(value) {
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    return Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  }
+  const text = clean_(value);
+  if (/^\\d{4}-\\d{2}-\\d{2}$/.test(text)) return text;
+  return text;
 }
 
 function listParticipants(viagemId) {
