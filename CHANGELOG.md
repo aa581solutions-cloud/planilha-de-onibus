@@ -4,7 +4,7 @@
 - Reconstruída a interface com navegação lateral e telas separadas, seguindo a composição visual das três referências oficiais.
 - O painel passou a abrir em janela ampla (diálogo) em vez da barra lateral estreita do Planilhas.
 - Incluídos painel principal, cadastro de pessoas, viagens, inscrição, pagamentos, veículos, mapa de assentos, relatórios, pesquisa e configurações.
-- Corrigida a identidade textual: o nome oficial passa a ser Sistema de Viagens; a marca Betel 90 não deve aparecer na interface.
+- Padronizado o nome oficial do produto como Sistema de Viagens em toda a interface e documentação.
 - Atualizada a identificação e versão do backend; operações e estrutura de dados anteriores foram preservadas.
 - Mantidos os cadastros vazios e a regra de não importar dados antigos.
 - Não houve instalação, publicação nem teste em planilha Google real.
@@ -12,7 +12,7 @@
 
 ## Referências visuais oficiais — 2026-11-03
 - Confirmadas as três imagens enviadas pelo usuário como referências visuais oficiais de layout.
-- A marca Betel 90 nas imagens é apenas um erro de nomenclatura; o nome correto do produto é Sistema de Viagens.
+- Confirmado o nome oficial do produto: Sistema de Viagens.
 - Atualizados README e docs/REFERENCIA_VISUAL.md para apontar às imagens preservadas na raiz do repositório.
 - A referência HTML antiga index(3).html não corresponde às prévias de hoje e não deve orientar a implementação visual.
 - Nenhuma imagem foi editada; nenhum dado antigo foi importado.
