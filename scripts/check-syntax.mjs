@@ -19,7 +19,7 @@ function check(label, source, filename) {
 const code = fs.readFileSync(path.join(root, 'apps-script/Code.gs'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'apps-script/Main.html'), 'utf8');
 check('apps-script/Code.gs', code, 'Code.js');
-const blocks = [...html.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)];
+const blocks = [...html.matchAll(/<script\b[^>]*>(\s+\S*?)<\/script>/gi)];
 if (!blocks.length) {
   console.error('Nenhum bloco <script> encontrado em Main.html');
   process.exitCode = 1;
