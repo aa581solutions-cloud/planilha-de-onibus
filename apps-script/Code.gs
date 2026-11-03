@@ -1,0 +1,272 @@
+/**
+ * Planilha de Ônibus / Betel 90
+ * Backend Google Apps Script — base inicial.
+ * Inicialização não destrutiva: não apaga conteúdo existente.
+ */
+
+const APP = Object.freeze({
+  name: 'Planilha de Ônibus — Betel 90',
+  version: '0.1.0-dev.1',
+  sheets: {
+    PAINEL: [],
+    PESSOAS: ['PessoaID', 'Nome', 'Telefone', 'Observacoes', 'CriadoEm', 'AtualizadoEm', 'Status'],
+    VIAGENS: ['ViagemID', 'Nome', 'DataIda', 'DataRetorno', 'Destino', 'Status', 'Observacoes', 'CriadoEm'],
+    PARTICIPANTES: ['ParticipacaoID', 'ViagemID', 'PessoaID', 'Status', 'VeiculoID', 'NumeroAssento', 'ValorPrevisto', 'Observacoes', 'CriadoEm', 'AtualizadoEm'],
+    PAGAMENTOS: ['PagamentoID', 'ParticipacaoID', 'Data', 'Valor', 'Forma', 'Referencia', 'Observacoes', 'RegistradoEm'],
+    VEICULOS: ['VeiculoID', 'ViagemID', 'Tipo', 'Identificacao', 'Capacidade', 'Status', 'Observacoes', 'CriadoEm'],
+    ASSENTOS: ['AssentoID', 'ViagemID', 'VeiculoID', 'NumeroAssento', 'Status', 'ParticipacaoID', 'AtualizadoEm'],
+    CONFIG: ['Chave', 'Valor', 'Descricao']
+  }
+});
+
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('Betel 90')
+    .addItem('Abrir painel', 'showMainPanel')
+    .addSeparator()
+    .addItem('Preparar estrutura (não apaga dados)', 'setupBetel90')
+    .addToUi();
+}
+
+function setupBetel90() {
+  const ss = SpreadsheetApp.getActive();
+  Object.keys(APP.sheets).forEach(function(name) {
+    let sh = ss.getSheetByName(name);
+    if (!sh) sh = ss.insertSheet(name);
+    const headers = APP.sheets[name];
+    if (headers.length && sh.getLastRow() === 0) {
+      sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+      sh.setFrozenRows(1);
+      sh.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+      sh.autoResizeColumns(1, headers.length);
+    } else if (headers.length) {
+      const current = sh.getRange(1, 1, 1, headers.length).getDisplayValues()[0];
+      const mismatch = headers.some((h, i) => current[i] !== h);
+      if (mismatch) throw new Error('Cabeçalho divergente na aba ' + name + '. Nenhuma alteração foi feita nela.');
+    }
+  });
+  const panel = ss.getSheetByName('PAINEL');
+  if (panel && panel.getLastRow() === 0) {
+    panel.getRange('A1').setValue(APP.name);
+    panel.getRange('A2').setValue('Estrutura criada. Cadastros ainda vazios.');
+    panel.getRange('A1').setFontSize(16).setFontWeight('bold');
+  }
+  SpreadsheetApp.getUi().alert('Estrutura verificada. Nenhum cadastro foi inserido e nenhum dado existente foi apagado.');
+}
+
+function showMainPanel() {
+  const html = HtmlService.createHtmlOutputFromFile('Main')
+    .setTitle('Betel 90');
+  SpreadsheetApp.getUi().showSidebar(html);
+}
+
+function getAppSummary() {
+  const ss = SpreadsheetApp.getActive();
+  const count = name => {
+    const sh = ss.getSheetByName(name);
+    return sh && sh.getLastRow() > 1 ? sh.getLastRow() - 1 : 0;
+  };
+  return {
+    version: APP.version,
+    people: count('PESSOAS'),
+    trips: count('VIAGENS'),
+    participants: count('PARTICIPANTES'),
+    payments: count('PAGAMENTOS'),
+    vehicles: count('VEICULOS')
+  };
+}
+
+function addPerson(data) {
+  validateRequired_(data, ['nome']);
+  return withLock_(() => {
+    const sh = sheet_('PESSOAS');
+    const name = clean_(data.nome);
+    const phone = clean_(data.telefone || '');
+    const duplicate = rows_('PESSOAS').some(r =>
+      norm_(r.Nome) === norm_(name) && norm_(r.Telefone) === norm_(phone) && r.Status !== 'INATIVO'
+    );
+    if (duplicate) throw new Error('Já existe cadastro ativo com este nome e telefone.');
+    const id = newId_('P');
+    sh.appendRow([id, name, phone, clean_(data.observacoes || ''), new Date(), new Date(), 'ATIVO']);
+    return { id: id };
+  });
+}
+
+function addTrip(data) {
+  validateRequired_(data, ['nome', 'dataIda']);
+  return withLock_(() => {
+    const id = newId_('V');
+    sheet_('VIAGENS').appendRow([
+      id, clean_(data.nome), data.dataIda, data.dataRetorno || '',
+      clean_(data.destino || ''), 'PLANEJADA', clean_(data.observacoes || ''), new Date()
+    ]);
+    return { id: id };
+  });
+}
+
+function enrollParticipant(data) {
+  validateRequired_(data, ['viagemId', 'pessoaId']);
+  return withLock_(() => {
+    const people = rows_('PESSOAS');
+    const person = people.find(r => r.PessoaID === data.pessoaId && r.Status === 'ATIVO');
+    if (!person) throw new Error('Pessoa não encontrada ou inativa.');
+    if (!rows_('VIAGENS').some(r => r.ViagemID === data.viagemId && r.Status !== 'CANCELADA')) {
+      throw new Error('Viagem não encontrada ou cancelada.');
+    }
+    const exists = rows_('PARTICIPANTES').some(r =>
+      r.ViagemID === data.viagemId && r.PessoaID === data.pessoaId && r.Status !== 'CANCELADO'
+    );
+    if (exists) throw new Error('Esta pessoa já está inscrita nesta viagem.');
+    const id = newId_('PV');
+    sheet_('PARTICIPANTES').appendRow([
+      id, data.viagemId, data.pessoaId, 'PENDENTE', '', '',
+      Number(data.valorPrevisto || 0), clean_(data.observacoes || ''), new Date(), new Date()
+    ]);
+    return { id: id, nome: person.Nome };
+  });
+}
+
+function registerPayment(data) {
+  validateRequired_(data, ['participacaoId', 'data', 'valor']);
+  const amount = Number(data.valor);
+  if (!Number.isFinite(amount) || amount <= 0) throw new Error('Informe um valor de pagamento maior que zero.');
+  return withLock_(() => {
+    const participation = rows_('PARTICIPANTES').find(r =>
+      r.ParticipacaoID === data.participacaoId && r.Status !== 'CANCELADO'
+    );
+    if (!participation) throw new Error('Participação não encontrada ou cancelada.');
+    const id = newId_('PG');
+    sheet_('PAGAMENTOS').appendRow([
+      id, data.participacaoId, data.data, amount, clean_(data.forma || ''),
+      clean_(data.referencia || ''), clean_(data.observacoes || ''), new Date()
+    ]);
+    return { id: id, totalPago: getPaymentTotals_(data.participacaoId).pago };
+  });
+}
+
+function createVehicle(data) {
+  validateRequired_(data, ['viagemId', 'tipo', 'identificacao', 'capacidade']);
+  const capacity = Number(data.capacidade);
+  if (!Number.isInteger(capacity) || capacity < 1) throw new Error('Capacidade deve ser um número inteiro positivo.');
+  return withLock_(() => {
+    if (!rows_('VIAGENS').some(r => r.ViagemID === data.viagemId && r.Status !== 'CANCELADA')) {
+      throw new Error('Viagem não encontrada ou cancelada.');
+    }
+    const id = newId_('VC');
+    sheet_('VEICULOS').appendRow([
+      id, data.viagemId, clean_(data.tipo), clean_(data.identificacao),
+      capacity, 'ATIVO', clean_(data.observacoes || ''), new Date()
+    ]);
+    const seats = [];
+    for (let i = 1; i <= capacity; i++) {
+      seats.push([newId_('AS'), data.viagemId, id, i, 'LIVRE', '', new Date()]);
+    }
+    const sh = sheet_('ASSENTOS');
+    sh.getRange(sh.getLastRow() + 1, 1, seats.length, seats[0].length).setValues(seats);
+    return { id: id, assentos: capacity };
+  });
+}
+
+function assignSeat(data) {
+  validateRequired_(data, ['participacaoId', 'veiculoId', 'numeroAssento']);
+  return withLock_(() => {
+    const p = rows_('PARTICIPANTES').find(r => r.ParticipacaoID === data.participacaoId && r.Status !== 'CANCELADO');
+    if (!p) throw new Error('Participação não encontrada.');
+    const v = rows_('VEICULOS').find(r => r.VeiculoID === data.veiculoId && r.Status === 'ATIVO');
+    if (!v || v.ViagemID !== p.ViagemID) throw new Error('Veículo não pertence à mesma viagem.');
+    const seatNo = Number(data.numeroAssento);
+    const seat = rows_('ASSENTOS').find(r =>
+      r.ViagemID === p.ViagemID && r.VeiculoID === v.VeiculoID && Number(r.NumeroAssento) === seatNo
+    );
+    if (!seat) throw new Error('Assento não existe neste veículo.');
+    if (seat.Status === 'OCUPADO' && seat.ParticipacaoID !== p.ParticipacaoID) throw new Error('Assento já ocupado.');
+    const sh = sheet_('ASSENTOS');
+    const row = findRowById_(sh, 'AssentoID', seat.AssentoID);
+    sh.getRange(row, 5, 1, 3).setValues([['OCUPADO', p.ParticipacaoID, new Date()]]);
+    const psh = sheet_('PARTICIPANTES');
+    const prow = findRowById_(psh, 'ParticipacaoID', p.ParticipacaoID);
+    psh.getRange(prow, 5, 1, 2).setValues([[v.VeiculoID, seatNo]]);
+    psh.getRange(prow, 10).setValue(new Date());
+    return { ok: true };
+  });
+}
+
+function cancelParticipation(participacaoId) {
+  if (!participacaoId) throw new Error('Participação não informada.');
+  return withLock_(() => {
+    const sh = sheet_('PARTICIPANTES');
+    const row = findRowById_(sh, 'ParticipacaoID', participacaoId);
+    if (!row) throw new Error('Participação não encontrada.');
+    sh.getRange(row, 4).setValue('CANCELADO');
+    sh.getRange(row, 10).setValue(new Date());
+    const seats = rows_('ASSENTOS').filter(r => r.ParticipacaoID === participacaoId);
+    const seatSheet = sheet_('ASSENTOS');
+    seats.forEach(s => {
+      const sr = findRowById_(seatSheet, 'AssentoID', s.AssentoID);
+      seatSheet.getRange(sr, 5, 1, 3).setValues([['LIVRE', '', new Date()]]);
+    });
+    return { ok: true, historicoPreservado: true };
+  });
+}
+
+function getPaymentTotals_(participacaoId) {
+  const paid = rows_('PAGAMENTOS')
+    .filter(r => r.ParticipacaoID === participacaoId)
+    .reduce((sum, r) => sum + Number(r.Valor || 0), 0);
+  const p = rows_('PARTICIPANTES').find(r => r.ParticipacaoID === participacaoId);
+  const expected = p ? Number(p.ValorPrevisto || 0) : 0;
+  return { pago: paid, previsto: expected, saldo: Math.max(0, expected - paid) };
+}
+
+function sheet_(name) {
+  const sh = SpreadsheetApp.getActive().getSheetByName(name);
+  if (!sh) throw new Error('Aba ' + name + ' não encontrada. Execute a preparação da estrutura.');
+  return sh;
+}
+
+function rows_(name) {
+  const sh = sheet_(name);
+  if (sh.getLastRow() < 2) return [];
+  const values = sh.getDataRange().getValues();
+  const headers = values.shift();
+  return values.filter(row => row.some(v => v !== '')).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = row[i] instanceof Date ? row[i] : String(row[i] == null ? '' : row[i]));
+    return obj;
+  });
+}
+
+function findRowById_(sh, header, id) {
+  const values = sh.getDataRange().getValues();
+  const col = values[0].indexOf(header);
+  if (col < 0) throw new Error('Coluna ' + header + ' não encontrada.');
+  for (let i = 1; i < values.length; i++) if (String(values[i][col]) === String(id)) return i + 1;
+  return 0;
+}
+
+function newId_(prefix) {
+  return prefix + '-' + Utilities.getUuid().slice(0, 8).toUpperCase();
+}
+
+function validateRequired_(data, keys) {
+  if (!data) throw new Error('Dados não informados.');
+  keys.forEach(k => {
+    if (data[k] === undefined || data[k] === null || String(data[k]).trim() === '') {
+      throw new Error('Campo obrigatório: ' + k);
+    }
+  });
+}
+
+function clean_(value) {
+  return String(value == null ? '' : value).trim();
+}
+
+function norm_(value) {
+  return clean_(value).toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function withLock_(fn) {
+  const lock = LockService.getDocumentLock();
+  lock.waitLock(30000);
+  try { return fn(); } finally { lock.releaseLock(); }
+}
