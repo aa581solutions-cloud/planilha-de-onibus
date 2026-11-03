@@ -11,7 +11,7 @@ O desenvolvimento deve obedecer às instruções e decisões confirmadas pelo us
 - Uso: interface com aparência e funcionamento de sistema, sem exposição normal de linhas, colunas e fórmulas.
 - Visual: reproduzir fielmente as três prévias oficiais, mantendo a identidade oficial Sistema de Viagens.
 - Dados iniciais: estrutura completamente vazia; todos os cadastros serão inseridos manualmente.
-- Não importar dados antigos.
+- Não migrar automaticamente bases antigas. Importações manuais em lote só podem ocorrer com prévia, validação e confirmação do usuário.
 - Manter uma única fonte de dados por entidade, evitando cadastros e planilhas redundantes.
 - Preservar histórico; cancelamentos e retiradas alteram status, não apagam registros.
 - Não excluir dados nem publicar alterações em produção sem autorização.
