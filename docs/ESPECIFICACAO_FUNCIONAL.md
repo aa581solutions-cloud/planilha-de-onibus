@@ -101,7 +101,7 @@ A entrega será considerada conforme quando:
 
 ## 9. Fora do escopo desta etapa
 
-- Importação de registros antigos.
+- Migração automática de bases antigas ou importação automática sem revisão. A importação manual em lote, com prévia e confirmação, está prevista na seção 12.
 - Uso de arquivos antigos como modelo ou referência.
 - Publicação em ambiente de produção sem aprovação.
 - Inserção automática de dados de pessoas ou viagens.
