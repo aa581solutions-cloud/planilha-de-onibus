@@ -510,12 +510,15 @@ function previewBatchImport(tipo, viagemId, matriz) {
       if (!row.nome) { status='ERRO'; motivo='Nome não informado'; }
       else {
         const key = norm_(row.nome)+'|'+norm_(row.telefone);
-        if (seen.has(key) || people.some(p => norm_(p.Nome)===norm_(row.nome) && norm_(p.Telefone)===norm_(row.telefone) && p.Status!=='INATIVO')) { status='DUPLICADO'; motivo='Pessoa já cadastrada ou repetida no arquivo'; }
+        const sameName = people.filter(p => norm_(p.Nome)===norm_(row.nome) && p.Status!=='INATIVO');
+        if (!row.telefone && sameName.length) { status='ERRO'; motivo='Nome já existe sem telefone para diferenciar; confira a pessoa antes de importar'; }
+        else if (seen.has(key) || (row.telefone && sameName.some(p => norm_(p.Telefone)===norm_(row.telefone)))) { status='DUPLICADO'; motivo='Pessoa já cadastrada ou repetida no arquivo'; }
         seen.add(key);
       }
     } else {
-      const person = people.find(p => p.Status==='ATIVO' && ((row.pessoaId && p.PessoaID===row.pessoaId) || (row.nome && norm_(p.Nome)===norm_(row.nome) && (!row.telefone || norm_(p.Telefone)===norm_(row.telefone)))));
-      if (!person) { status='ERRO'; motivo='Pessoa não encontrada no cadastro único'; }
+      const matches = people.filter(p => p.Status==='ATIVO' && ((row.pessoaId && p.PessoaID===row.pessoaId) || (row.nome && norm_(p.Nome)===norm_(row.nome) && (!row.telefone || norm_(p.Telefone)===norm_(row.telefone)))));
+      const person = matches.length===1 ? matches[0] : null;
+      if (!person) { status='ERRO'; motivo=matches.length>1?'Nome ambíguo: informe PessoaID ou telefone para identificar sem risco.':'Pessoa não encontrada no cadastro único'; }
       else {
         row.pessoaId = person.PessoaID; row.nome = person.Nome;
         const part = parts.find(p => p.ViagemID===viagemId && p.PessoaID===person.PessoaID && p.Status!=='CANCELADO');
@@ -561,7 +564,9 @@ function applyBatchImport(tipo, viagemId, matriz) {
         if (viagemId) sheet_('PARTICIPANTES').appendRow([newId_('PV'),viagemId,id,'PENDENTE','','',0,'',new Date(),new Date()]);
       } else {
         const people=rows_('PESSOAS');
-        const person=people.find(p=>p.Status==='ATIVO'&&((get('pessoaId')&&p.PessoaID===get('pessoaId'))||(get('nome')&&norm_(p.Nome)===norm_(get('nome'))&&(!get('telefone')||norm_(p.Telefone)===norm_(get('telefone'))))));
+        const matches=people.filter(p=>p.Status==='ATIVO'&&((get('pessoaId')&&p.PessoaID===get('pessoaId'))||(get('nome')&&norm_(p.Nome)===norm_(get('nome'))&&(!get('telefone')||norm_(p.Telefone)===norm_(get('telefone'))))));
+        const person=matches.length===1?matches[0]:null;
+        if(!person) throw new Error('A identificação da pessoa ficou ambígua ou não foi localizada. Nenhuma linha desta operação deve ser presumida.');
         const part=rows_('PARTICIPANTES').find(p=>p.ViagemID===viagemId&&p.PessoaID===person.PessoaID&&p.Status!=='CANCELADO');
         if(tipo==='participantes'){
           sheet_('PARTICIPANTES').appendRow([newId_('PV'),viagemId,person.PessoaID,'PENDENTE','','',Number(get('valorPrevisto')||0),get('observacoes'),new Date(),new Date()]);
