@@ -24,7 +24,7 @@ function onOpen() {
     .createMenu('Sistema de Viagens')
     .addItem('Abrir painel', 'showMainPanel')
     .addSeparator()
-    .addItem('Preparar estrutura (não apaga dados)', 'setupBetel90')
+    .addItem('Preparar estrutura (não apaga dados)', 'setupSistemaViagens')
     .addToUi();
 }
 
@@ -99,10 +99,6 @@ function setupSistemaViagens() {
   );
 }
 
-// Compatibilidade com o nome da função usado na primeira orientação.
-function setupBetel90() {
-  return setupSistemaViagens();
-}
 
 function showMainPanel() {
   const html = HtmlService.createHtmlOutputFromFile('Main')
