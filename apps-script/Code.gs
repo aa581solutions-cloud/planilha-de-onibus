@@ -9,7 +9,7 @@ const APP = Object.freeze({
   version: '0.1.0-dev.4',
   sheets: {
     PAINEL: [],
-    PESSOAS: ['PessoaID', 'Nome', 'Telefone', 'Observacoes', 'CriadoEm', 'AtualizadoEm', 'Status'],
+    PESSOAS: ['PessoaID', 'Nome', 'Telefone', 'Observacoes', 'CriadoEm', 'AtualizadoEm', 'Status', 'TipoDocumento', 'NumeroDocumento', 'OrgaoEmissor'],
     VIAGENS: ['ViagemID', 'Nome', 'DataIda', 'DataRetorno', 'Destino', 'Status', 'Observacoes', 'CriadoEm'],
     PARTICIPANTES: ['ParticipacaoID', 'ViagemID', 'PessoaID', 'Status', 'VeiculoID', 'NumeroAssento', 'ValorPrevisto', 'Observacoes', 'CriadoEm', 'AtualizadoEm'],
     PAGAMENTOS: ['PagamentoID', 'ParticipacaoID', 'Data', 'Valor', 'Forma', 'Referencia', 'Observacoes', 'RegistradoEm'],
@@ -65,8 +65,10 @@ function setupSistemaViagens() {
       return;
     }
 
-    const atual = aba.getRange(1, 1, 1, cabecalhos.length).getDisplayValues()[0];
-    const compativel = cabecalhos.every(function(titulo, indice) {
+    const ultimaColuna = Math.max(aba.getLastColumn(), 1);
+    const atual = aba.getRange(1, 1, 1, Math.max(ultimaColuna, cabecalhos.length)).getDisplayValues()[0];
+    const colunasExistentes = Math.min(ultimaColuna, cabecalhos.length);
+    const compativel = cabecalhos.slice(0, colunasExistentes).every(function(titulo, indice) {
       return atual[indice] === titulo;
     });
 
@@ -75,6 +77,14 @@ function setupSistemaViagens() {
         'A aba "' + nome + '" já contém dados ou cabeçalhos diferentes. ' +
         'Por segurança, a inicialização foi interrompida sem apagar ou substituir conteúdo.'
       );
+    }
+
+    if (ultimaColuna < cabecalhos.length) {
+      const novasColunas = cabecalhos.slice(ultimaColuna);
+      aba.getRange(1, ultimaColuna + 1, 1, novasColunas.length).setValues([novasColunas]);
+      aba.getRange(1, ultimaColuna + 1, 1, novasColunas.length)
+        .setFontWeight('bold').setBackground('#17365D').setFontColor('#FFFFFF');
+      aba.autoResizeColumns(ultimaColuna + 1, novasColunas.length);
     }
 
     verificadas.push(nome);
@@ -135,8 +145,30 @@ function addPerson(data) {
     );
     if (duplicate) throw new Error('Já existe cadastro ativo com este nome e telefone.');
     const id = newId_('P');
-    sh.appendRow([id, name, phone, clean_(data.observacoes || ''), new Date(), new Date(), 'ATIVO']);
+    sh.appendRow([id, name, phone, clean_(data.observacoes || ''), new Date(), new Date(), 'ATIVO', clean_(data.tipoDocumento || ''), clean_(data.numeroDocumento || ''), clean_(data.orgaoEmissor || '')]);
     return { id: id };
+  });
+}
+
+function updatePerson(data) {
+  validateRequired_(data, ['pessoaId', 'nome']);
+  return withLock_(() => {
+    const sh = sheet_('PESSOAS');
+    const row = findRowById_(sh, 'PessoaID', data.pessoaId);
+    if (!row) throw new Error('Pessoa não encontrada.');
+    const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getDisplayValues()[0];
+    const set = (header, value) => {
+      const col = headers.indexOf(header) + 1;
+      if (col > 0) sh.getRange(row, col).setValue(value);
+    };
+    set('Nome', clean_(data.nome));
+    set('Telefone', clean_(data.telefone || ''));
+    set('Observacoes', clean_(data.observacoes || ''));
+    set('TipoDocumento', clean_(data.tipoDocumento || ''));
+    set('NumeroDocumento', clean_(data.numeroDocumento || ''));
+    set('OrgaoEmissor', clean_(data.orgaoEmissor || ''));
+    set('AtualizadoEm', new Date());
+    return { id: data.pessoaId, atualizado: true };
   });
 }
 
@@ -328,7 +360,7 @@ function withLock_(fn) {
 
 function listPeople() {
   return rows_('PESSOAS').filter(r => r.Status === 'ATIVO')
-    .map(r => ({ id: r.PessoaID, nome: r.Nome, telefone: r.Telefone }));
+    .map(r => ({ id: r.PessoaID, nome: r.Nome, telefone: r.Telefone, tipoDocumento: r.TipoDocumento || '', numeroDocumento: r.NumeroDocumento || '', orgaoEmissor: r.OrgaoEmissor || '' }));
 }
 
 function listTrips() {
