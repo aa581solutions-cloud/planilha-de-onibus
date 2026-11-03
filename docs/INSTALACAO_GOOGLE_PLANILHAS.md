@@ -10,7 +10,7 @@ O repositório contém o código-fonte inicial. Ainda não existe uma planilha c
 4. Crie um arquivo HTML chamado `Main` e copie o conteúdo de `apps-script/Main.html`.
 5. Em **Configurações do projeto**, ajuste o fuso horário para `America/Sao_Paulo`.
 6. Salve o projeto e volte à planilha.
-7. Atualize a página. No menu **Betel 90**, escolha **Preparar estrutura**.
+7. Atualize a página. No menu **Sistema de Viagens**, escolha **Preparar estrutura**.
 8. Autorize os escopos solicitados pelo Google, após conferir o código e a conta em que está executando.
 9. No menu **Betel 90**, escolha **Abrir painel**.
 
