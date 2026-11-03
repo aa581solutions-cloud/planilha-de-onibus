@@ -15,7 +15,7 @@
     button.secondary{background:#e8f0f8;color:var(--navy)}.status{font-size:12px;color:var(--muted);margin-top:8px;min-height:16px}
     .row{display:flex;gap:7px}.row>*{flex:1;min-width:0}.hidden{display:none}
     nav{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0}nav button{margin:0;padding:7px 9px;font-size:11px}
-    .list{font-size:12px;line-height:1.5;color:var(--muted);max-height:150px;overflow:auto}
+    .list{font-size:12px;line-height:1.5;color:var(--muted);max-height:420px;overflow:auto}.report-document{background:#fff;padding:14px;border:1px solid var(--line);color:#183153}.report-document h2{font-size:18px}.report-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:11px}.report-table th,.report-table td{border:1px solid #d8e4f1;padding:6px;text-align:left}.report-table th{background:#eaf2fa}.report-kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin:12px 0}.report-kpis div{background:#edf4fc;padding:9px;border-radius:6px}.report-kpis b,.report-kpis span{display:block}.report-kpis b{font-size:18px;color:#1769aa}
   </style>
 </head>
 <body>
@@ -110,8 +110,40 @@
     function registerPayment(){call('registerPayment',{participacaoId:document.getElementById('paymentParticipant').value,data:document.getElementById('paymentDate').value,valor:document.getElementById('paymentAmount').value,forma:document.getElementById('paymentMethod').value},'paymentStatus');}
     function loadSeatMap(){const trip=document.getElementById('seatTrip').value;google.script.run.withSuccessHandler(p=>{const el=document.getElementById('seatParticipant');el.innerHTML='<option value="">Selecione</option>'+p.map(x=>'<option value="'+x.id+'">'+esc(x.nome)+'</option>').join('');}).listParticipants(trip);google.script.run.withSuccessHandler(s=>{const free=s.filter(x=>x.status==='LIVRE');document.getElementById('seatChoice').innerHTML='<option value="">Selecione veículo/assento</option>'+free.map(x=>'<option value="'+x.veiculoId+'|'+x.numero+'">'+esc(x.veiculo)+' — assento '+x.numero+'</option>').join('');document.getElementById('seatMap').innerHTML=s.map(x=>esc(x.veiculo)+' / '+x.numero+': '+(x.status==='OCUPADO'?esc(x.passageiro):'Livre')).join('<br>');}).getSeatMap(trip);}
     function assignSeat(){const choice=document.getElementById('seatChoice').value.split('|');if(choice.length!==2){msg('seatStatus','Selecione um assento livre.');return;}call('assignSeat',{participacaoId:document.getElementById('seatParticipant').value,veiculoId:choice[0],numeroAssento:choice[1]},'seatStatus',loadSeatMap);}
-    function previewReport(){const trip=document.getElementById('reportTrip').value;google.script.run.withSuccessHandler(r=>{reportHtml='<h2>'+esc(r.trip.nome)+'</h2><p>'+esc(r.trip.destino)+' — '+esc(r.trip.dataIda)+'</p>'+'<p>Inscritos: '+r.totals.inscritos+' | Previsto: R$ '+r.totals.previsto.toFixed(2)+' | Pago: R$ '+r.totals.pago.toFixed(2)+' | Saldo: R$ '+r.totals.saldo.toFixed(2)+'</p>'+'<h3>Participantes</h3><ol>'+r.participants.map(p=>'<li>'+esc(p.nome)+' — '+esc(p.status)+' — assento '+(p.assento||'—')+'</li>').join('')+'</ol>'+'<h3>Veículos</h3><ul>'+r.vehicles.map(v=>'<li>'+esc(v.identificacao)+' ('+esc(v.tipo)+'): '+v.ocupados+' ocupados / '+v.livres+' livres</li>').join('')+'</ul>';document.getElementById('reportArea').innerHTML=reportHtml;}).withFailureHandler(e=>msg('reportArea',e.message)).getTripReport(trip);}
-    function printReport(){if(!reportHtml){msg('reportArea','Gere a pré-visualização antes de imprimir.');return;}const w=window.open('','_blank');w.document.write('<html><head><title>Relatório Betel 90</title><style>body{font:12px Arial;padding:24px;color:#123}h2{color:#1769aa}li{margin:5px 0}</style></head><body>'+reportHtml+'</body></html>');w.document.close();w.focus();w.print();}
+    function previewReport(){
+      const trip=document.getElementById('reportTrip').value,type=document.getElementById('reportType').value;
+      google.script.run.withSuccessHandler(r=>{
+        const money=n=>'R$ '+Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+        const head='<h2>'+esc(r.title)+'</h2><p><b>'+esc(r.trip.nome)+'</b> — '+esc(r.trip.destino)+' — '+esc(r.trip.dataIda)+'</p>';
+        let body='';
+        if(type==='resumo'){
+          body='<div class="report-kpis">'+[['Participantes',r.totals.participantes],['Confirmados',r.totals.confirmados],['Veículos',r.totals.veiculos],['Capacidade',r.totals.capacidade],['Ocupados',r.totals.ocupados],['Livres',r.totals.livres]].map(x=>'<div><b>'+x[1]+'</b><span>'+x[0]+'</span></div>').join('')+'</div><h3>Financeiro</h3><p>Previsto: '+money(r.totals.previsto)+' | Pago: '+money(r.totals.pago)+' | Saldo: '+money(r.totals.saldo)+'</p><h3>Veículos</h3>'+reportTable(['Veículo','Tipo','Capacidade','Ocupados','Livres'],r.vehicles.map(v=>[v.nome,v.tipo,v.capacidade,v.ocupados,v.livres]));
+        }else if(type==='pagamentos'){
+          body='<p>Previsto: '+money(r.totals.previsto)+' | Pago: '+money(r.totals.pago)+' | Saldo: '+money(r.totals.saldo)+'</p>'+reportTable(['Participante','Data','Valor','Forma','Referência'],r.paymentDetails.map(p=>[p.nome,p.data,money(p.valor),p.forma,p.referencia]));
+        }else{
+          const captain=type==='veiculo'||type==='capitao';
+          const headers=captain?['Veículo','Assento','Passageiro','Telefone','Situação']:['Participante','Telefone','Situação','Veículo','Assento','Previsto','Pago','Saldo'];
+          const rows=r.rows.map(p=>captain?[p.veiculo,p.assento,p.nome,p.telefone,p.status]:[p.nome,p.telefone,p.status,p.veiculo,p.assento,money(p.previsto),money(p.pago),money(p.saldo)]);
+          body=(type==='capitao'?'<p>Relação para conferência de embarque, organizada por veículo e assento.</p>':'')+reportTable(headers,rows);
+          if(type==='confirmados'&&!rows.length) body='<p>Nenhum passageiro está marcado como confirmado.</p>';
+        }
+        reportHtml='<article class="report-document">'+head+body+'<footer>Betel 90 • Documento gerado em '+new Date().toLocaleString('pt-BR')+'</footer></article>';
+        document.getElementById('reportArea').innerHTML=reportHtml;
+      }).withFailureHandler(e=>msg('reportArea',e.message)).getReportData(trip,type);
+    }
+    function reportTable(headers,rows){
+      return '<table class="report-table"><thead><tr>'+headers.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+
+        (rows.length?rows.map(row=>'<tr>'+row.map(v=>'<td>'+esc(v==null?'—':v)+'</td>').join('')+'</tr>').join(''):'<tr><td colspan="'+headers.length+'">Nenhum registro para exibir.</td></tr>')+'</tbody></table>';
+    }
+    function printReport(){
+      if(!reportHtml){msg('reportArea','Gere a pré-visualização antes de imprimir.');return;}
+      const orientation=document.getElementById('orientation').value,w=window.open('','_blank');
+      if(!w){msg('reportArea','Permita a abertura de janelas para imprimir o documento.');return;}
+      w.document.write('<!doctype html><html><head><title>Betel 90 — Relatório</title><style>'+
+        '@page{size:A4 '+orientation+';margin:14mm}body{font:11px Arial,sans-serif;color:#183153;margin:0}h2{color:#1769aa;margin:0 0 6px}h3{margin:18px 0 7px}.report-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:10px}.report-table th,.report-table td{border:1px solid #cbd8e7;padding:6px;text-align:left}.report-table th{background:#eaf2fa}.report-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}.report-kpis div{border:1px solid #d8e4f1;padding:10px}.report-kpis b,.report-kpis span{display:block}.report-kpis b{font-size:18px;color:#1769aa}.report-document footer{margin-top:24px;border-top:1px solid #ddd;padding-top:8px;color:#63758b;font-size:9px}tr{break-inside:avoid}'+
+        '</style></head><body>'+reportHtml+'</body></html>');
+      w.document.close();w.focus();w.print();
+    }
     refresh();
   </script>
 </body>
