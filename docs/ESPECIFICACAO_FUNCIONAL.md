@@ -52,7 +52,7 @@ Construir uma solução de gestão de viagens e transporte que opere continuamen
 
 A estrutura deve evitar fontes paralelas e duplicação de dados:
 
-- **PESSOAS:** cadastro único de cada pessoa.
+- **PESSOAS:** cadastro único de cada pessoa, com tipo de documento, número e órgão emissor opcionais; esses dados podem ser completados ou corrigidos posteriormente pela edição do cadastro.
 - **VIAGENS:** um registro por viagem/evento.
 - **PARTICIPANTES:** vínculo entre pessoa e viagem; a mesma pessoa pode participar de viagens diferentes, mas não deve ser inscrita duas vezes na mesma viagem.
 - **PAGAMENTOS:** histórico de lançamentos por participação; parcelas não devem sobrescrever pagamentos anteriores.
