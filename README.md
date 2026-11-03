@@ -1,14 +1,14 @@
 # Planilha de Ônibus — Betel 90
 
-Projeto de gestão de viagens e transporte construído para funcionar no **Google Planilhas**, com interface de sistema por meio do Google Apps Script.
+Projeto de gestão de viagens e transporte construído para funcionar no Google Planilhas, com interface de sistema por meio do Google Apps Script.
 
 ## Fonte de verdade
-O desenvolvimento deve obedecer às instruções e decisões confirmadas pelo usuário e à especificação mantida neste repositório. Arquivos antigos não devem ser usados como fonte de dados, lógica ou funcionalidades. A única exceção é a prévia HTML explicitamente recuperada e aprovada como **referência exclusivamente visual**, documentada em [docs/REFERENCIA_VISUAL.md](docs/REFERENCIA_VISUAL.md).
+O desenvolvimento deve obedecer às instruções e decisões confirmadas pelo usuário e à especificação mantida neste repositório. Arquivos antigos não devem ser usados como fonte de dados, lógica ou funcionalidades. As três imagens enviadas ao repositório em 03/11/2026 são as referências visuais oficiais do projeto, documentadas em [docs/REFERENCIA_VISUAL.md](docs/REFERENCIA_VISUAL.md).
 
 ## Decisões obrigatórias
 - Plataforma: Google Planilhas + Google Apps Script.
 - Uso: interface com aparência e funcionamento de sistema, sem exposição normal de linhas, colunas e fórmulas.
-- Visual: reproduzir fielmente a prévia visual aprovada, usando a referência preservada em `docs/referencias-visuais/previa-betel90-index3.html`.
+- Visual: reproduzir fielmente as três prévias oficiais de 03/11/2026.
 - Dados iniciais: estrutura completamente vazia; todos os cadastros serão inseridos manualmente.
 - Não importar dados antigos.
 - Manter uma única fonte de dados por entidade, evitando cadastros e planilhas redundantes.
@@ -19,7 +19,7 @@ O desenvolvimento deve obedecer às instruções e decisões confirmadas pelo us
 ## Documentos
 - [Especificação funcional](docs/ESPECIFICACAO_FUNCIONAL.md)
 - [Arquitetura técnica](docs/ARQUITETURA_TECNICA.md)
-- [Referência visual aprovada](docs/REFERENCIA_VISUAL.md)
+- [Referências visuais oficiais — 03/11/2026](docs/REFERENCIA_VISUAL.md)
 - [Instalação no Google Planilhas](docs/INSTALACAO_GOOGLE_PLANILHAS.md)
 - [Histórico de versões](CHANGELOG.md)
 
@@ -29,4 +29,4 @@ O desenvolvimento deve obedecer às instruções e decisões confirmadas pelo us
 - [Manifesto](apps-script/appsscript.json)
 
 ## Estado atual
-Versão 0.1.0-dev.3: documentação, backend inicial, formulários, consulta/atribuição de assentos e prévia básica de resumo/impressão no repositório. As seis consultas de listas e relatórios e a prévia com impressão A4 (retrato/paisagem) foram adicionadas ao protótipo. Ainda não existe uma planilha Google real criada ou publicada. A interface ainda precisa ser ajustada para corresponder à referência visual agora preservada; falta validar o fluxo de confirmação, concluir os testes completos e instalar na conta Google.
+Versão 0.1.0-dev.3: documentação, backend inicial, formulários, consulta/atribuição de assentos e prévia básica de resumo/impressão no repositório. As seis consultas de listas e relatórios e a prévia com impressão A4 (retrato/paisagem) foram adicionadas ao protótipo. Ainda não existe uma planilha Google real criada ou publicada. A interface precisa ser comparada e ajustada para corresponder às três prévias oficiais; falta validar o fluxo de confirmação, concluir os testes completos e instalar na conta Google.
