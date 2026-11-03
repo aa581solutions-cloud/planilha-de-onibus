@@ -82,7 +82,7 @@ function addPerson(data) {
     const sh = sheet_('PESSOAS');
     const name = clean_(data.nome);
     const phone = clean_(data.telefone || '');
-    const duplicate = rows_('PESSOAS').some(r =>
+    const duplicate = phone !== '' && rows_('PESSOAS').some(r =>
       norm_(r.Nome) === norm_(name) && norm_(r.Telefone) === norm_(phone) && r.Status !== 'INATIVO'
     );
     if (duplicate) throw new Error('Já existe cadastro ativo com este nome e telefone.');
@@ -269,4 +269,34 @@ function withLock_(fn) {
   const lock = LockService.getDocumentLock();
   lock.waitLock(30000);
   try { return fn(); } finally { lock.releaseLock(); }
+}
+
+
+function listPeople() {
+  return rows_('PESSOAS').filter(r => r.Status === 'ATIVO')
+    .map(r => ({ id: r.PessoaID, nome: r.Nome, telefone: r.Telefone }));
+}
+
+function listTrips() {
+  return rows_('VIAGENS').filter(r => r.Status !== 'CANCELADA')
+    .map(r => ({ id: r.ViagemID, nome: r.Nome, dataIda: r.DataIda, destino: r.Destino, status: r.Status }));
+}
+
+function listParticipants(viagemId) {
+  return rows_('PARTICIPANTES').filter(r => r.ViagemID === viagemId && r.Status !== 'CANCELADO')
+    .map(r => {
+      const person = rows_('PESSOAS').find(p => p.PessoaID === r.PessoaID);
+      const totals = getPaymentTotals_(r.ParticipacaoID);
+      return {
+        id: r.ParticipacaoID, pessoaId: r.PessoaID,
+        nome: person ? person.Nome : '(cadastro não localizado)',
+        status: r.Status, veiculoId: r.VeiculoID, assento: r.NumeroAssento,
+        previsto: totals.previsto, pago: totals.pago, saldo: totals.saldo
+      };
+    });
+}
+
+function listVehicles(viagemId) {
+  return rows_('VEICULOS').filter(r => r.ViagemID === viagemId && r.Status === 'ATIVO')
+    .map(r => ({ id: r.VeiculoID, tipo: r.Tipo, identificacao: r.Identificacao, capacidade: Number(r.Capacidade) }));
 }
