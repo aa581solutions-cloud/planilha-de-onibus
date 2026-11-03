@@ -19,7 +19,7 @@ Cria as abas e cabeçalhos previstos, se ainda não existirem. Não preenche cad
 
 ## Limitações desta versão
 - A interface é um protótipo funcional inicial, não a reprodução final da prévia visual aprovada.
-- Ainda faltam formulários de edição, atribuição de assentos na interface, consultas completas, relatórios, pré-visualização de impressão e exportação PDF.
+- Ainda faltam formulários de edição, gestão de status de confirmação de passageiros e testes completos. As seis consultas de relatórios e a pré-visualização com impressão A4 foram adicionadas ao código, mas ainda precisam ser validadas em uma planilha Google real.
 - Não executar em planilhas com dados reais antes de validar em uma cópia de teste.
 - O usuário deve manter a planilha oficial vazia até concluir os testes.
 
