@@ -350,3 +350,28 @@ function getTripReport(viagemId) {
     seats: seats
   };
 }
+
+function getReportData(viagemId,tipo){
+  if(!viagemId) throw new Error('Selecione uma viagem.');
+  const trip=rows_('VIAGENS').find(r=>r.ViagemID===viagemId);
+  if(!trip) throw new Error('Viagem não encontrada.');
+  const people=rows_('PESSOAS'), parts=rows_('PARTICIPANTES').filter(r=>r.ViagemID===viagemId&&r.Status!=='CANCELADO');
+  const vehicles=rows_('VEICULOS').filter(r=>r.ViagemID===viagemId), seats=rows_('ASSENTOS').filter(r=>r.ViagemID===viagemId), pays=rows_('PAGAMENTOS');
+  const data=parts.map(p=>{
+    const person=people.find(x=>x.PessoaID===p.PessoaID)||{}, vehicle=vehicles.find(x=>x.VeiculoID===p.VeiculoID)||{};
+    const payments=pays.filter(x=>x.ParticipacaoID===p.ParticipacaoID), paid=payments.reduce((s,x)=>s+Number(x.Valor||0),0), expected=Number(p.ValorPrevisto||0);
+    return {id:p.ParticipacaoID,nome:person.Nome||'(não localizado)',telefone:person.Telefone||'',status:p.Status,veiculo:vehicle.Identificacao||'',tipoVeiculo:vehicle.Tipo||'',assento:p.NumeroAssento||'',previsto:expected,pago:paid,saldo:Math.max(0,expected-paid),pagamentos:payments.map(x=>({data:x.Data,valor:Number(x.Valor||0),forma:x.Forma||'',referencia:x.Referencia||''}))};
+  });
+  const titles={geral:'Lista geral de participantes',veiculo:'Lista por veículo e assento',capitao:'Lista do capitão',pagamentos:'Lista de pagamentos',confirmados:'Lista de passageiros confirmados',resumo:'Resumo geral da viagem'};
+  if(!titles[tipo]) throw new Error('Tipo de lista inválido.');
+  let rows=data;
+  if(tipo==='confirmados') rows=data.filter(p=>['CONFIRMADO','CONFIRMADA'].includes(String(p.status).toUpperCase()));
+  if(tipo==='veiculo'||tipo==='capitao') rows=data.filter(p=>p.veiculo||p.assento);
+  rows=rows.slice().sort((a,b)=>(tipo==='veiculo'||tipo==='capitao'?(a.veiculo.localeCompare(b.veiculo,'pt-BR')||Number(a.assento||0)-Number(b.assento||0)):a.nome.localeCompare(b.nome,'pt-BR')));
+  const sum=k=>data.reduce((s,p)=>s+Number(p[k]||0),0);
+  return {title:titles[tipo],trip:{nome:trip.Nome,destino:trip.Destino,dataIda:trip.DataIda,dataRetorno:trip.DataRetorno,status:trip.Status},
+    rows:tipo==='pagamentos'?data:rows,
+    paymentDetails:tipo==='pagamentos'?data.flatMap(p=>p.pagamentos.map(pg=>({nome:p.nome,...pg}))):[],
+    vehicles:vehicles.map(v=>({nome:v.Identificacao,tipo:v.Tipo,capacidade:Number(v.Capacidade||0),ocupados:seats.filter(s=>s.VeiculoID===v.VeiculoID&&s.Status==='OCUPADO').length,livres:seats.filter(s=>s.VeiculoID===v.VeiculoID&&s.Status==='LIVRE').length})),
+    totals:{participantes:data.length,confirmados:data.filter(p=>['CONFIRMADO','CONFIRMADA'].includes(String(p.status).toUpperCase())).length,previsto:sum('previsto'),pago:sum('pago'),saldo:sum('saldo'),veiculos:vehicles.length,capacidade:vehicles.reduce((s,v)=>s+Number(v.Capacidade||0),0),ocupados:seats.filter(s=>s.Status==='OCUPADO').length,livres:seats.filter(s=>s.Status==='LIVRE').length}};
+}
