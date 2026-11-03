@@ -1,14 +1,15 @@
-# Planilha de Ônibus — Betel 90
+# Sistema de Viagens
 
 Projeto de gestão de viagens e transporte construído para funcionar no Google Planilhas, com interface de sistema por meio do Google Apps Script.
 
 ## Fonte de verdade
-O desenvolvimento deve obedecer às instruções e decisões confirmadas pelo usuário e à especificação mantida neste repositório. Arquivos antigos não devem ser usados como fonte de dados, lógica ou funcionalidades. As três imagens enviadas ao repositório em 03/11/2026 são as referências visuais oficiais do projeto, documentadas em [docs/REFERENCIA_VISUAL.md](docs/REFERENCIA_VISUAL.md).
+O desenvolvimento deve obedecer às instruções e decisões confirmadas pelo usuário e à especificação mantida neste repositório. Arquivos antigos não devem ser usados como fonte de dados, lógica ou funcionalidades. As três imagens enviadas ao repositório em 03/11/2026 são as referências visuais oficiais de layout, documentadas em [docs/REFERENCIA_VISUAL.md](docs/REFERENCIA_VISUAL.md). A marca Betel 90 presente nas imagens é o único elemento de identidade a corrigir: o nome correto é Sistema de Viagens.
 
 ## Decisões obrigatórias
 - Plataforma: Google Planilhas + Google Apps Script.
+- Nome oficial: Sistema de Viagens.
 - Uso: interface com aparência e funcionamento de sistema, sem exposição normal de linhas, colunas e fórmulas.
-- Visual: reproduzir fielmente as três prévias oficiais de 03/11/2026.
+- Visual: reproduzir fielmente as três prévias oficiais, substituindo apenas a marca Betel 90 por Sistema de Viagens.
 - Dados iniciais: estrutura completamente vazia; todos os cadastros serão inseridos manualmente.
 - Não importar dados antigos.
 - Manter uma única fonte de dados por entidade, evitando cadastros e planilhas redundantes.
@@ -25,8 +26,8 @@ O desenvolvimento deve obedecer às instruções e decisões confirmadas pelo us
 
 ## Código
 - [Backend Apps Script](apps-script/Code.gs)
-- [Interface inicial](apps-script/Main.html)
+- [Interface do sistema](apps-script/Main.html)
 - [Manifesto](apps-script/appsscript.json)
 
 ## Estado atual
-Versão 0.1.0-dev.3: documentação, backend inicial, formulários, consulta/atribuição de assentos e prévia básica de resumo/impressão no repositório. As seis consultas de listas e relatórios e a prévia com impressão A4 (retrato/paisagem) foram adicionadas ao protótipo. Ainda não existe uma planilha Google real criada ou publicada. A interface precisa ser comparada e ajustada para corresponder às três prévias oficiais; falta validar o fluxo de confirmação, concluir os testes completos e instalar na conta Google.
+Versão 0.1.0-dev.4: interface reconstruída com navegação lateral e telas de painel, pessoas, viagens, inscrições, pagamentos, veículos, assentos, relatórios, pesquisa e configurações; identidade textual alterada para Sistema de Viagens. Backend preservado, com atualização da identificação e versão. A interface ainda não foi executada nem validada em uma planilha Google real. Algumas áreas visuais das referências (foto/endereço de pessoa e configurações persistentes, por exemplo) ainda dependem de ampliação do modelo de dados/backend. Não considerar pronto ou publicado.
