@@ -4,6 +4,7 @@
 - Incluídos formulários iniciais de pessoas, viagens, inscrições, veículos e pagamentos.
 - Incluída consulta do mapa de assentos e atribuição de lugar.
 - Incluída prévia básica de resumo da viagem e impressão pelo navegador.
+- Acrescentada consulta do mapa de assentos e escape de dados exibidos em HTML.
 - Corrigida realocação de participante para liberar o assento anterior.
 - Adicionado roteiro de testes manuais.
 - Ainda não há planilha Google real criada ou publicada.
