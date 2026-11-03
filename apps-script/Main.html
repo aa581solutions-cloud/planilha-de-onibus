@@ -4,149 +4,113 @@
   <base target="_top">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    :root{--blue:#1769aa;--navy:#15385b;--line:#d8e4f1;--bg:#f2f6fb;--muted:#63758b}
-    *{box-sizing:border-box}body{font:13px Arial,sans-serif;margin:0;padding:14px;background:var(--bg);color:var(--navy)}
-    header,.panel{background:#fff;border:1px solid var(--line);border-radius:11px;padding:14px;margin-bottom:11px}
-    header h2{font-size:17px;margin:0 0 5px}p{color:var(--muted);line-height:1.4;margin:5px 0}
-    h3{font-size:14px;margin:0 0 10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-    .stat{background:#edf4fc;padding:10px;border-radius:8px}.num{font-size:22px;font-weight:bold;color:var(--blue)}
-    label{display:block;font-weight:600;margin:9px 0 4px}input,select,textarea{width:100%;padding:9px;border:1px solid #cbd8e7;border-radius:7px;background:white;color:#183153}
-    button{border:0;border-radius:7px;background:var(--blue);color:#fff;padding:9px 12px;font-weight:600;cursor:pointer;margin-top:10px}
-    button.secondary{background:#e8f0f8;color:var(--navy)}.status{font-size:12px;color:var(--muted);margin-top:8px;min-height:16px}
-    .row{display:flex;gap:7px}.row>*{flex:1;min-width:0}.hidden{display:none}
-    nav{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0}nav button{margin:0;padding:7px 9px;font-size:11px}
-    .list{font-size:12px;line-height:1.5;color:var(--muted);max-height:420px;overflow:auto}.report-document{background:#fff;padding:14px;border:1px solid var(--line);color:#183153}.report-document h2{font-size:18px}.report-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:11px}.report-table th,.report-table td{border:1px solid #d8e4f1;padding:6px;text-align:left}.report-table th{background:#eaf2fa}.report-kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin:12px 0}.report-kpis div{background:#edf4fc;padding:9px;border-radius:6px}.report-kpis b,.report-kpis span{display:block}.report-kpis b{font-size:18px;color:#1769aa}
+    :root{--navy:#062f68;--navy2:#0b438b;--blue:#087df0;--sky:#eaf4ff;--line:#b8d2ef;--ink:#102e5c;--muted:#58708f;--green:#19b64a;--purple:#6932c7;--orange:#f28a00;--red:#d93434}
+    *{box-sizing:border-box}body{margin:0;background:#eaf3ff;color:var(--ink);font:14px Arial,sans-serif}
+    .app{min-height:100vh;display:grid;grid-template-columns:220px 1fr}
+    aside{background:linear-gradient(180deg,#073c80,#052957);color:white;padding:14px 10px;display:flex;flex-direction:column;gap:10px}
+    .brand{text-align:center;padding:10px 4px 16px;border-bottom:1px solid #4777ae}.brand .mark{font-size:42px}.brand b{display:block;font-size:24px;font-style:italic}.brand small{color:#ffe500;font-weight:bold;font-style:italic}
+    nav{display:grid;gap:6px}nav button{width:100%;text-align:left;border:1px solid #315d91;background:linear-gradient(180deg,#174b86,#0b3569);color:#fff;border-radius:9px;padding:11px 10px;font-size:14px;font-weight:bold;cursor:pointer}nav button.active,nav button:hover{background:linear-gradient(180deg,#20a1ff,#0665e5);border-color:#69c3ff}
+    .aside-foot{margin-top:auto;text-align:center;font-size:11px;line-height:1.5;color:#d7e8ff}
+    main{min-width:0;padding:16px;background:linear-gradient(135deg,#dcecff,#f6faff)}
+    .hero{min-height:148px;border-radius:14px;overflow:hidden;background:linear-gradient(100deg,#0b4c9a,#138ce6 50%,#b7dcff);color:white;display:flex;align-items:center;justify-content:space-between;padding:22px 30px;margin-bottom:14px;box-shadow:0 3px 9px #164b8530}
+    .hero h1{font-size:34px;font-style:italic;margin:0 0 7px;text-shadow:0 2px 3px #123d72}.hero p{margin:0;font-size:16px}.hero .bus{font-size:78px;filter:drop-shadow(0 5px 4px #17416a88)}
+    .summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+    .metric{background:linear-gradient(145deg,#fff,#e2efff);border:1px solid var(--line);border-radius:12px;padding:13px;box-shadow:0 2px 5px #164b8520}.metric span{display:block;color:var(--muted);font-weight:bold}.metric strong{font-size:26px;color:var(--navy);display:block;margin-top:5px}
+    .quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+    .quick button{border:0;border-radius:13px;color:#fff;font-weight:bold;font-size:18px;padding:20px 8px;min-height:86px;box-shadow:0 3px 6px #173e7033;cursor:pointer}.qblue{background:linear-gradient(145deg,#1ba2ff,#0756b9)}.qgreen{background:linear-gradient(145deg,#35d75c,#078536)}.qpurple{background:linear-gradient(145deg,#8c50f0,#4516a0)}.qorange{background:linear-gradient(145deg,#ffae20,#e45d00)}
+    .columns{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(260px,.8fr);gap:12px}.panel{background:linear-gradient(145deg,#fff,#edf5ff);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 2px 6px #174b8520;margin-bottom:12px}
+    .panel h2{font-size:17px;color:white;background:linear-gradient(90deg,#0879e8,#082f69);padding:11px 15px;margin:0}.inside{padding:14px}.screen{display:none}.screen.active{display:block}
+    .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.form-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+    label{display:block;font-weight:bold;margin:2px 0 5px;color:#18345d}input,select,textarea{width:100%;padding:10px;border:1px solid #a9c5e8;border-radius:7px;background:#fff;color:#18345d;font:14px Arial}textarea{resize:vertical}
+    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}.btn{border:0;border-radius:8px;padding:10px 15px;color:white;background:linear-gradient(180deg,#168ff4,#0756b5);font-weight:bold;cursor:pointer}.btn.gray{background:linear-gradient(180deg,#edf3fa,#cbd8e8);color:#17345d}.btn.red{background:linear-gradient(180deg,#f25a5a,#b91e1e)}.btn.green{background:linear-gradient(180deg,#39ce65,#078337)}
+    .status{min-height:18px;margin-top:9px;color:#176b32;font-weight:bold}.hint{background:#dff8e5;border:1px solid #9eddb0;color:#145d2b;border-radius:8px;padding:9px;margin-top:10px}
+    .report-links{display:grid;gap:7px}.report-links button{text-align:left;background:#e7f2ff;color:#123b73;border:1px solid #b7d0ed;border-radius:8px;padding:11px;font-weight:bold;cursor:pointer}
+    .table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px;margin-top:10px}th,td{border:1px solid #c3d7ee;padding:8px;text-align:left}th{background:#d9eaff;color:#123b73}
+    .seat-grid{display:grid;grid-template-columns:repeat(5,48px);gap:8px;padding:12px;background:#f2f7ff;border:1px solid #c4d8f0;border-radius:10px;width:max-content;max-width:100%}.seat{height:42px;border-radius:8px;background:linear-gradient(#168df2,#0754ae);color:white;border:1px solid #06488e;font-weight:bold}.seat.free{background:linear-gradient(#e4e8ed,#9aa8b7);color:#24374e}.seat.reserved{background:#f6a623;color:#573400}
+    .footer{background:#062f68;color:#fff;border-radius:10px;padding:13px;text-align:center;font-style:italic;margin-top:12px}
+    .hidden{display:none!important}
+    @media(max-width:850px){.app{grid-template-columns:165px 1fr}aside{padding:8px}.brand b{font-size:19px}.summary{grid-template-columns:repeat(2,1fr)}.quick{grid-template-columns:repeat(2,1fr)}.columns{grid-template-columns:1fr}.hero h1{font-size:25px}}
+    @media(max-width:580px){.app{display:block}aside{position:static}.brand{padding:5px}.brand .mark{display:none}nav{grid-template-columns:repeat(3,1fr)}nav button{font-size:11px;padding:8px 4px;text-align:center}main{padding:9px}.hero{padding:16px;min-height:110px}.hero .bus{font-size:45px}.hero h1{font-size:21px}.form-grid,.form-grid.three{grid-template-columns:1fr}.summary{gap:6px}.metric strong{font-size:21px}}
+    @media print{aside,.hero,.quick,.actions,.no-print{display:none!important}.app{display:block}main{padding:0;background:#fff}.panel{box-shadow:none;break-inside:avoid}}
   </style>
 </head>
 <body>
-  <header>
-    <h2>Planilha de Ônibus — Betel 90</h2>
-    <p>Área de operação inicial. A estrutura começa vazia. Os dados são cadastrados manualmente.</p>
-    <button class="secondary" onclick="prepare()">Preparar / verificar estrutura</button>
-    <div id="globalStatus" class="status"></div>
-  </header>
-  <section class="panel">
-    <h3>Resumo</h3><div class="grid" id="stats"><div class="stat">Carregando...</div></div>
-  </section>
-  <nav>
-    <button onclick="show('person')">Pessoas</button>
-    <button onclick="show('trip')">Viagens</button>
-    <button onclick="show('enroll')">Inscrições</button>
-    <button onclick="show('vehicle')">Veículos</button>
-    <button onclick="show('payment')">Pagamentos</button>
-    <button onclick="show('seats')">Assentos</button>
-    <button onclick="show('reports')">Relatórios</button>
-  </nav>
-  <section id="person" class="panel">
-    <h3>Novo cadastro de pessoa</h3>
-    <form onsubmit="submitPerson(event)">
-      <label>Nome completo *</label><input name="nome" required>
-      <label>Telefone</label><input name="telefone" placeholder="Opcional">
-      <label>Observações</label><textarea name="observacoes" rows="2"></textarea>
-      <button type="submit">Cadastrar pessoa</button>
-    </form><div id="personStatus" class="status"></div>
-  </section>
-  <section id="trip" class="panel hidden">
-    <h3>Nova viagem</h3>
-    <form onsubmit="submitTrip(event)">
-      <label>Nome da viagem *</label><input name="nome" required>
-      <div class="row"><div><label>Data de ida *</label><input type="date" name="dataIda" required></div><div><label>Data de retorno</label><input type="date" name="dataRetorno"></div></div>
-      <label>Destino</label><input name="destino">
-      <label>Observações</label><textarea name="observacoes" rows="2"></textarea>
-      <button type="submit">Cadastrar viagem</button>
-    </form><div id="tripStatus" class="status"></div>
-  </section>
-  <section id="enroll" class="panel hidden">
-    <h3>Inscrever pessoa na viagem</h3>
-    <label>Viagem *</label><select id="enrollTrip" required></select>
-    <label>Pessoa *</label><select id="enrollPerson" required></select>
-    <label>Valor previsto da passagem</label><input id="expected" type="number" min="0" step="0.01" value="0">
-    <button onclick="enroll()">Confirmar inscrição</button><div id="enrollStatus" class="status"></div>
-  </section>
-  <section id="vehicle" class="panel hidden">
-    <h3>Cadastrar veículo</h3>
-    <label>Viagem *</label><select id="vehicleTrip" required></select>
-    <label>Tipo *</label><select id="vehicleType"><option>Ônibus</option><option>Van</option><option>Carro</option><option>Outro</option></select>
-    <label>Identificação *</label><input id="vehicleName" placeholder="Ex.: Ônibus 1" required>
-    <label>Quantidade de assentos *</label><input id="vehicleCapacity" type="number" min="1" step="1" required>
-    <button onclick="createVehicle()">Cadastrar veículo e gerar assentos</button><div id="vehicleStatus" class="status"></div>
-  </section>
-  <section id="payment" class="panel hidden">
-    <h3>Registrar pagamento</h3>
-    <label>Viagem *</label><select id="paymentTrip" onchange="loadParticipants()" required></select>
-    <label>Participante *</label><select id="paymentParticipant" required></select>
-    <div class="row"><div><label>Data *</label><input id="paymentDate" type="date" required></div><div><label>Valor *</label><input id="paymentAmount" type="number" min="0.01" step="0.01" required></div></div>
-    <label>Forma de pagamento</label><input id="paymentMethod" placeholder="Dinheiro, PIX, transferência...">
-    <button onclick="registerPayment()">Salvar pagamento</button><div id="paymentStatus" class="status"></div>
-  </section>
-  <section id="seats" class="panel hidden"><h3>Mapa de assentos</h3><label>Viagem *</label><select id="seatTrip" onchange="loadSeatMap()" required></select><label>Participante *</label><select id="seatParticipant" required></select><label>Veículo e assento livre *</label><select id="seatChoice" required></select><button onclick="assignSeat()">Atribuir assento</button><div id="seatMap" class="list"></div><div id="seatStatus" class="status"></div></section>
-  <section id="reports" class="panel hidden"><h3>Listas gerais e relatórios</h3><label>Viagem *</label><select id="reportTrip" onchange="loadReportParticipants()" required></select><label>Atualizar situação do passageiro</label><div class="row"><div><select id="reportParticipant"><option value="">Selecione um participante</option></select></div><div><select id="participantStatus"><option value="PENDENTE">Pendente</option><option value="CONFIRMADO">Confirmado</option></select></div></div><button class="secondary" onclick="updateParticipantStatus()">Salvar situação</button><label>Documento</label><select id="reportType"><option value="geral">Lista geral de participantes</option><option value="veiculo">Lista por veículo e assento</option><option value="capitao">Lista do capitão</option><option value="pagamentos">Lista de pagamentos</option><option value="confirmados">Passageiros confirmados</option><option value="resumo">Resumo geral da viagem</option></select><div class="row"><div><label>Papel</label><select id="paper"><option value="A4">A4</option></select></div><div><label>Orientação</label><select id="orientation"><option value="portrait">Retrato</option><option value="landscape">Paisagem</option></select></div></div><button onclick="previewReport()">Gerar pré-visualização</button><div id="reportArea" class="list"></div><button class="secondary" onclick="printReport()">Imprimir / salvar PDF</button></section>
-  <script>
-    let reportHtml = '';
-    function show(id){['person','trip','enroll','vehicle','payment','seats','reports'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));}
-    function msg(id,text){document.getElementById(id).textContent=text;}
-    function esc(v){const el=document.createElement('div');el.textContent=String(v==null?'':v);return el.innerHTML;}
-    function call(name,args,statusId,done){
-      const runner=google.script.run.withSuccessHandler(r=>{msg(statusId,'Concluído. '+(r&&r.id?'Código: '+r.id:''));if(done)done(r);refresh();})
-        .withFailureHandler(e=>msg(statusId,'Não foi possível concluir: '+e.message));
-      runner[name](args);
-    }
-    function prepare(){google.script.run.withSuccessHandler(()=>{msg('globalStatus','Estrutura verificada; nenhum cadastro foi criado.');refresh();})
-      .withFailureHandler(e=>msg('globalStatus',e.message)).setupBetel90();}
-    function submitPerson(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.target).entries());call('addPerson',d,'personStatus',()=>e.target.reset());}
-    function submitTrip(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.target).entries());call('addTrip',d,'tripStatus',()=>e.target.reset());}
-    function fill(id,items,placeholder){const el=document.getElementById(id);const old=el.value;el.innerHTML='<option value="">'+placeholder+'</option>'+items.map(x=>'<option value="'+x.id+'">'+esc(x.nome)+'</option>').join('');if(items.some(x=>x.id===old))el.value=old;}
-    function refresh(){
-      google.script.run.withSuccessHandler(d=>{
-        document.getElementById('stats').innerHTML=[['Pessoas',d.people],['Viagens',d.trips],['Inscrições',d.participants],['Pagamentos',d.payments],['Veículos',d.vehicles]]
-          .map(x=>'<div class="stat"><div class="num">'+x[1]+'</div>'+x[0]+'</div>').join('');
-      }).getAppSummary();
-      google.script.run.withSuccessHandler(p=>fill('enrollPerson',p,'Selecione uma pessoa')).listPeople();
-      google.script.run.withSuccessHandler(t=>{fill('enrollTrip',t,'Selecione uma viagem');fill('vehicleTrip',t,'Selecione uma viagem');fill('paymentTrip',t,'Selecione uma viagem');fill('seatTrip',t,'Selecione uma viagem');fill('reportTrip',t,'Selecione uma viagem');}).listTrips();
-    }
-    function enroll(){call('enrollParticipant',{viagemId:document.getElementById('enrollTrip').value,pessoaId:document.getElementById('enrollPerson').value,valorPrevisto:document.getElementById('expected').value},'enrollStatus');}
-    function createVehicle(){call('createVehicle',{viagemId:document.getElementById('vehicleTrip').value,tipo:document.getElementById('vehicleType').value,identificacao:document.getElementById('vehicleName').value,capacidade:document.getElementById('vehicleCapacity').value},'vehicleStatus');}
-    function loadParticipants(){const id=document.getElementById('paymentTrip').value;google.script.run.withSuccessHandler(p=>{const el=document.getElementById('paymentParticipant');el.innerHTML='<option value="">Selecione</option>'+p.map(x=>'<option value="'+x.id+'">'+esc(x.nome)+'</option>').join('');}).listParticipants(id);}
-    function registerPayment(){call('registerPayment',{participacaoId:document.getElementById('paymentParticipant').value,data:document.getElementById('paymentDate').value,valor:document.getElementById('paymentAmount').value,forma:document.getElementById('paymentMethod').value},'paymentStatus');}
-    function loadSeatMap(){const trip=document.getElementById('seatTrip').value;google.script.run.withSuccessHandler(p=>{const el=document.getElementById('seatParticipant');el.innerHTML='<option value="">Selecione</option>'+p.map(x=>'<option value="'+x.id+'">'+esc(x.nome)+'</option>').join('');}).listParticipants(trip);google.script.run.withSuccessHandler(s=>{const free=s.filter(x=>x.status==='LIVRE');document.getElementById('seatChoice').innerHTML='<option value="">Selecione veículo/assento</option>'+free.map(x=>'<option value="'+x.veiculoId+'|'+x.numero+'">'+esc(x.veiculo)+' — assento '+x.numero+'</option>').join('');document.getElementById('seatMap').innerHTML=s.map(x=>esc(x.veiculo)+' / '+x.numero+': '+(x.status==='OCUPADO'?esc(x.passageiro):'Livre')).join('<br>');}).getSeatMap(trip);}
-    function assignSeat(){const choice=document.getElementById('seatChoice').value.split('|');if(choice.length!==2){msg('seatStatus','Selecione um assento livre.');return;}call('assignSeat',{participacaoId:document.getElementById('seatParticipant').value,veiculoId:choice[0],numeroAssento:choice[1]},'seatStatus',loadSeatMap);}
-    function loadReportParticipants(){const id=document.getElementById('reportTrip').value;google.script.run.withSuccessHandler(p=>{const el=document.getElementById('reportParticipant');el.innerHTML='<option value="">Selecione um participante</option>'+p.map(x=>'<option value="'+x.id+'">'+esc(x.nome)+' — '+esc(x.status)+'</option>').join('');}).listParticipants(id);}
-    function updateParticipantStatus(){const id=document.getElementById('reportParticipant').value,status=document.getElementById('participantStatus').value;google.script.run.withSuccessHandler(()=>{msg('reportArea','Situação do passageiro atualizada.');loadReportParticipants();}).withFailureHandler(e=>msg('reportArea',e.message)).setParticipantStatus(id,status);}
-    function previewReport(){
-      const trip=document.getElementById('reportTrip').value,type=document.getElementById('reportType').value;
-      google.script.run.withSuccessHandler(r=>{
-        const money=n=>'R$ '+Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-        const head='<h2>'+esc(r.title)+'</h2><p><b>'+esc(r.trip.nome)+'</b> — '+esc(r.trip.destino)+' — '+esc(r.trip.dataIda)+'</p>';
-        let body='';
-        if(type==='resumo'){
-          body='<div class="report-kpis">'+[['Participantes',r.totals.participantes],['Confirmados',r.totals.confirmados],['Veículos',r.totals.veiculos],['Capacidade',r.totals.capacidade],['Ocupados',r.totals.ocupados],['Livres',r.totals.livres]].map(x=>'<div><b>'+x[1]+'</b><span>'+x[0]+'</span></div>').join('')+'</div><h3>Financeiro</h3><p>Previsto: '+money(r.totals.previsto)+' | Pago: '+money(r.totals.pago)+' | Saldo: '+money(r.totals.saldo)+'</p><h3>Veículos</h3>'+reportTable(['Veículo','Tipo','Capacidade','Ocupados','Livres'],r.vehicles.map(v=>[v.nome,v.tipo,v.capacidade,v.ocupados,v.livres]));
-        }else if(type==='pagamentos'){
-          body='<p>Previsto: '+money(r.totals.previsto)+' | Pago: '+money(r.totals.pago)+' | Saldo: '+money(r.totals.saldo)+'</p>'+reportTable(['Participante','Data','Valor','Forma','Referência'],r.paymentDetails.map(p=>[p.nome,p.data,money(p.valor),p.forma,p.referencia]));
-        }else{
-          const captain=type==='veiculo'||type==='capitao';
-          const headers=captain?['Veículo','Assento','Passageiro','Telefone','Situação']:['Participante','Telefone','Situação','Veículo','Assento','Previsto','Pago','Saldo'];
-          const rows=r.rows.map(p=>captain?[p.veiculo,p.assento,p.nome,p.telefone,p.status]:[p.nome,p.telefone,p.status,p.veiculo,p.assento,money(p.previsto),money(p.pago),money(p.saldo)]);
-          body=(type==='capitao'?'<p>Relação para conferência de embarque, organizada por veículo e assento.</p>':'')+reportTable(headers,rows);
-          if(type==='confirmados'&&!rows.length) body='<p>Nenhum passageiro está marcado como confirmado.</p>';
-        }
-        reportHtml='<article class="report-document">'+head+body+'<footer>Betel 90 • Documento gerado em '+new Date().toLocaleString('pt-BR')+'</footer></article>';
-        document.getElementById('reportArea').innerHTML=reportHtml;
-      }).withFailureHandler(e=>msg('reportArea',e.message)).getReportData(trip,type);
-    }
-    function reportTable(headers,rows){
-      return '<table class="report-table"><thead><tr>'+headers.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+
-        (rows.length?rows.map(row=>'<tr>'+row.map(v=>'<td>'+esc(v==null?'—':v)+'</td>').join('')+'</tr>').join(''):'<tr><td colspan="'+headers.length+'">Nenhum registro para exibir.</td></tr>')+'</tbody></table>';
-    }
-    function printReport(){
-      if(!reportHtml){msg('reportArea','Gere a pré-visualização antes de imprimir.');return;}
-      const orientation=document.getElementById('orientation').value,w=window.open('','_blank');
-      if(!w){msg('reportArea','Permita a abertura de janelas para imprimir o documento.');return;}
-      w.document.write('<!doctype html><html><head><title>Betel 90 — Relatório</title><style>'+
-        '@page{size:A4 '+orientation+';margin:14mm}body{font:11px Arial,sans-serif;color:#183153;margin:0}h2{color:#1769aa;margin:0 0 6px}h3{margin:18px 0 7px}.report-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:10px}.report-table th,.report-table td{border:1px solid #cbd8e7;padding:6px;text-align:left}.report-table th{background:#eaf2fa}.report-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}.report-kpis div{border:1px solid #d8e4f1;padding:10px}.report-kpis b,.report-kpis span{display:block}.report-kpis b{font-size:18px;color:#1769aa}.report-document footer{margin-top:24px;border-top:1px solid #ddd;padding-top:8px;color:#63758b;font-size:9px}tr{break-inside:avoid}'+
-        '</style></head><body>'+reportHtml+'</body></html>');
-      w.document.close();w.focus();w.print();
-    }
-    refresh();
-  </script>
+<div class="app">
+  <aside>
+    <div class="brand"><div class="mark">🚌</div><b>Sistema de Viagens</b><small>Organização de viagens</small></div>
+    <nav id="nav">
+      <button class="active" data-screen="home">⌂　Painel Principal</button>
+      <button data-screen="people">♟　Pessoas</button>
+      <button data-screen="trips">▦　Viagens</button>
+      <button data-screen="enroll">＋　Inscrição</button>
+      <button data-screen="payments">▤　Pagamentos</button>
+      <button data-screen="vehicles">▣　Veículos</button>
+      <button data-screen="seats">▦　Assentos</button>
+      <button data-screen="reports">▥　Relatórios</button>
+      <button data-screen="search">⌕　Pesquisa</button>
+      <button data-screen="settings">⚙　Configurações</button>
+    </nav>
+    <div class="aside-foot">AA Solutions<br>Tecnologia a serviço de todos<br><span id="version"></span></div>
+  </aside>
+  <main>
+    <div class="hero"><div><h1>Viajar juntos é uma bênção!</h1><p>Planejando, organizando e vivendo essa jornada juntos.</p></div><div class="bus">🚌</div></div>
+    <section id="home" class="screen active">
+      <div class="panel"><h2>Resumo da Viagem</h2><div class="inside"><div class="summary">
+        <div class="metric"><span>Viagens cadastradas</span><strong id="tripCount">0</strong></div>
+        <div class="metric"><span>Pessoas cadastradas</span><strong id="peopleCount">0</strong></div>
+        <div class="metric"><span>Participantes inscritos</span><strong id="participantCount">0</strong></div>
+        <div class="metric"><span>Veículos cadastrados</span><strong id="vehicleCount">0</strong></div>
+      </div><div class="hint" id="globalStatus">Sistema pronto para iniciar. Cadastre uma viagem para começar.</div></div></div>
+      <div class="quick"><button class="qblue" onclick="go('people')">♟<br>Cadastrar Pessoa</button><button class="qgreen" onclick="go('enroll')">▦<br>Inscrever na Viagem</button><button class="qpurple" onclick="go('payments')">▤<br>Registrar Pagamento</button><button class="qorange" onclick="go('vehicles')">🚌<br>Gerenciar Veículos</button></div>
+      <div class="columns"><div>
+        <div class="panel"><h2>⌕　Pesquisar</h2><div class="inside"><div class="form-grid"><div><label>Nome</label><input id="homeSearch" placeholder="Digite o nome..."></div><div><label>Documento / telefone</label><input id="homePhone" placeholder="Digite para pesquisar..."></div></div><div class="actions"><button class="btn" onclick="searchPeople()">Pesquisar</button></div><div id="homeSearchResult" class="table-wrap"></div></div></div>
+        <div class="panel"><h2>♟　Cadastro Rápido de Pessoa</h2><div class="inside"><form id="quickPersonForm" onsubmit="savePerson(event)"><div class="form-grid"><div><label>Nome completo *</label><input name="nome" required></div><div><label>Telefone</label><input name="telefone"></div><div><label>Observações</label><input name="observacoes"></div></div><div class="actions"><button class="btn">Salvar</button><button type="reset" class="btn gray">Limpar</button></div></form><div id="quickPersonStatus" class="status"></div></div></div>
+      </div><div class="panel"><h2>Relatórios</h2><div class="inside report-links"><button onclick="go('reports','geral')">Lista da Empresa　›</button><button onclick="go('reports','capitao')">Lista do Capitão　›</button><button onclick="go('seats')">Mapa de Assentos　›</button><button onclick="go('reports','pagamentos')">Comprovante / Pagamentos　›</button><button onclick="go('reports','resumo')">Resumo da Viagem　›</button></div></div></div>
+    </section>
+    <section id="people" class="screen"><div class="panel"><h2>♟　Cadastro de Pessoas</h2><div class="inside"><div class="columns"><form id="personForm" onsubmit="savePerson(event)"><label>Nome completo *</label><input name="nome" required><label>Telefone / WhatsApp</label><input name="telefone"><label>Observações</label><textarea name="observacoes" rows="3"></textarea><div class="actions"><button class="btn">Salvar</button><button type="reset" class="btn gray">Limpar</button></div><div id="personStatus" class="status"></div></form><div><label>Pesquisa de Pessoa</label><input id="peopleSearch" placeholder="Nome ou telefone"><div class="actions"><button class="btn" onclick="searchPeople()">Pesquisar</button></div><div id="peopleResults" class="table-wrap"></div></div></div></div></div></section>
+    <section id="trips" class="screen"><div class="panel"><h2>▦　Cadastro de Viagens</h2><div class="inside"><form id="tripForm" onsubmit="saveTrip(event)"><div class="form-grid"><div><label>Nome da viagem *</label><input name="nome" required placeholder="Ex.: Viagem de Congresso"></div><div><label>Destino</label><input name="destino"></div><div><label>Data de ida *</label><input name="dataIda" type="date" required></div><div><label>Data de retorno</label><input name="dataRetorno" type="date"></div><div class="full"><label>Observações</label><textarea name="observacoes"></textarea></div></div><div class="actions"><button class="btn">Salvar viagem</button><button type="reset" class="btn gray">Limpar</button></div></form><div id="tripStatus" class="status"></div><div id="tripList" class="table-wrap"></div></div></div></section>
+    <section id="enroll" class="screen"><div class="panel"><h2>＋　Inscrever Pessoa na Viagem</h2><div class="inside"><div class="form-grid"><div><label>Selecione a pessoa</label><select id="enrollPerson"></select></div><div><label>Viagem</label><select id="enrollTrip"></select></div><div><label>Valor previsto</label><input id="expected" type="number" min="0" step=".01" value="0"></div><div><label>Observações</label><input id="enrollNotes"></div></div><div class="actions"><button class="btn green" onclick="enroll()">Inscrever</button><button class="btn gray" onclick="clearEnroll()">Limpar</button><button class="btn red" onclick="cancelEnrollment()">Cancelar inscrição selecionada</button></div><div id="enrollStatus" class="status"></div><div id="participantList" class="table-wrap"></div></div></div></section>
+    <section id="payments" class="screen"><div class="panel"><h2>▤　Registrar Pagamento</h2><div class="inside"><div class="form-grid"><div><label>Viagem</label><select id="paymentTrip" onchange="loadPaymentPeople()"></select></div><div><label>Pessoa inscrita</label><select id="paymentParticipant"></select></div><div><label>Valor *</label><input id="paymentAmount" type="number" min=".01" step=".01"></div><div><label>Forma de pagamento</label><select id="paymentMethod"><option>Dinheiro</option><option>PIX</option><option>Transferência</option><option>Outro</option></select></div><div><label>Data do pagamento *</label><input id="paymentDate" type="date"></div><div><label>Observações</label><input id="paymentNotes"></div></div><div class="actions"><button class="btn green" onclick="registerPayment()">Registrar pagamento</button><button class="btn gray" onclick="clearPayment()">Limpar</button></div><div id="paymentStatus" class="status"></div></div></div></section>
+    <section id="vehicles" class="screen"><div class="panel"><h2>🚌　Gerenciar Veículos</h2><div class="inside"><div class="columns"><div><div class="form-grid"><div><label>Viagem</label><select id="vehicleTrip" onchange="loadVehicles()"></select></div><div><label>Tipo</label><select id="vehicleType"><option>Ônibus</option><option>Van</option><option>Carro</option><option>Outro</option></select></div><div><label>Identificação / placa</label><input id="vehicleName" placeholder="Ex.: Ônibus ABC-1234"></div><div><label>Capacidade</label><input id="vehicleCapacity" type="number" min="1"></div></div><div class="actions"><button class="btn" onclick="createVehicle()">Salvar veículo</button></div><div id="vehicleStatus" class="status"></div></div><div><h3>Lista de Veículos</h3><div id="vehicleList" class="table-wrap"></div></div></div></div></div></section>
+    <section id="seats" class="screen"><div class="panel"><h2>▦　Mapa de Assentos</h2><div class="inside"><div class="form-grid"><div><label>Viagem</label><select id="seatTrip" onchange="loadSeatMap()"></select></div><div><label>Participante</label><select id="seatParticipant"></select></div><div><label>Assento disponível</label><select id="seatChoice"></select></div></div><div class="actions"><button class="btn" onclick="assignSeat()">Atribuir assento</button><button class="btn gray" onclick="loadSeatMap()">Atualizar mapa</button></div><div id="seatStatus" class="status"></div><div id="seatMap" class="table-wrap"></div></div></div></section>
+    <section id="reports" class="screen"><div class="panel"><h2>▥　Relatórios e Listas</h2><div class="inside"><div class="form-grid"><div><label>Viagem</label><select id="reportTrip" onchange="loadReportParticipants()"></select></div><div><label>Documento</label><select id="reportType"><option value="geral">Lista da Empresa</option><option value="capitao">Lista do Capitão</option><option value="veiculo">Lista por veículo e assento</option><option value="pagamentos">Lista de pagamentos</option><option value="confirmados">Passageiros confirmados</option><option value="resumo">Resumo da Viagem</option></select></div><div><label>Participante</label><select id="reportParticipant"></select></div><div><label>Situação</label><select id="participantStatus"><option value="PENDENTE">Pendente</option><option value="CONFIRMADO">Confirmado</option></select></div></div><div class="actions"><button class="btn gray" onclick="updateParticipantStatus()">Atualizar situação</button><button class="btn" onclick="previewReport()">Visualizar relatório</button><button class="btn green" onclick="printReport()">Imprimir / PDF</button></div><div id="reportArea"></div></div></div></section>
+    <section id="search" class="screen"><div class="panel"><h2>⌕　Pesquisa e Consulta</h2><div class="inside"><div class="form-grid"><div><label>Pesquisar pessoas</label><input id="searchQuery" placeholder="Nome ou telefone"></div></div><div class="actions"><button class="btn" onclick="searchPeople()">Buscar</button></div><div id="searchResults" class="table-wrap"></div></div></div></section>
+    <section id="settings" class="screen"><div class="panel"><h2>⚙　Configurações do Sistema</h2><div class="inside"><p>Preferências gerais da operação. Os valores abaixo são apenas campos de interface nesta versão; ainda não são gravados na planilha.</p><div class="form-grid"><div><label>Valor padrão da viagem (R$)</label><input id="defaultFare" type="number" min="0" step=".01" value="0"></div><div><label>Data limite para inscrição</label><input id="deadline" type="date"></div></div><div class="hint">As configurações persistentes e o backup serão implementados em etapa própria, sem alterar os dados cadastrados.</div></div></div></section>
+    <div class="footer">Sistema de Viagens — Planejando, organizando e vivendo essa jornada juntos!　|　AA Solutions</div>
+  </main>
+</div>
+<script>
+let people=[],trips=[],reportHtml='';
+const $=id=>document.getElementById(id);
+function msg(id,t){if($(id))$(id).textContent=t}
+function esc(v){const d=document.createElement('div');d.textContent=String(v==null?'':v);return d.innerHTML}
+function go(id,reportType){document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('active',x.dataset.screen===id));if(id==='reports'&&reportType)$('reportType').value=reportType;if(id==='trips')renderTrips();if(id==='vehicles')loadVehicles();if(id==='enroll')renderParticipants();if(id==='payments')loadPaymentPeople();if(id==='seats')loadSeatMap();if(id==='reports')loadReportParticipants()}
+function call(name,args,status,done){const runner=google.script.run.withSuccessHandler(r=>{msg(status,'Operação concluída com sucesso.');if(done)done(r);refresh()}).withFailureHandler(e=>msg(status,'Erro: '+e.message));runner[name](args)}
+function fill(id,items,label){const el=$(id);if(!el)return;const old=el.value;el.innerHTML='<option value="">'+label+'</option>'+items.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.nome)+'</option>').join('');if(items.some(x=>x.id===old))el.value=old}
+function refresh(){google.script.run.withSuccessHandler(d=>{$('peopleCount').textContent=d.people;$('tripCount').textContent=d.trips;$('participantCount').textContent=d.participants;$('vehicleCount').textContent=d.vehicles;$('version').textContent='Versão '+d.version}).getAppSummary();google.script.run.withSuccessHandler(p=>{people=p;['enrollPerson'].forEach(id=>fill(id,p,'Selecione uma pessoa'))}).listPeople();google.script.run.withSuccessHandler(t=>{trips=t;['enrollTrip','paymentTrip','vehicleTrip','seatTrip','reportTrip'].forEach(id=>fill(id,t,'Selecione uma viagem'));renderTrips()}).listTrips()}
+function savePerson(e){e.preventDefault();const data=Object.fromEntries(new FormData(e.target).entries());const status=e.target.id==='quickPersonForm'?'quickPersonStatus':'personStatus';call('addPerson',data,status,()=>e.target.reset())}
+function saveTrip(e){e.preventDefault();call('addTrip',Object.fromEntries(new FormData(e.target).entries()),'tripStatus',()=>e.target.reset())}
+function renderTrips(){if(!$('tripList'))return;$('tripList').innerHTML=trips.length?table(['Viagem','Destino','Data'],trips.map(t=>[t.nome,t.destino,t.dataIda])):'<p>Nenhuma viagem cadastrada.</p>'}
+function searchPeople(){const q=(($('homeSearch')?.value||$('peopleSearch')?.value||$('searchQuery')?.value||'')+' '+($('homePhone')?.value||'')).trim().toLocaleLowerCase();const found=people.filter(p=>(p.nome+' '+p.telefone).toLocaleLowerCase().includes(q));const html=table(['Nome','Telefone'],found.map(p=>[p.nome,p.telefone]));['homeSearchResult','peopleResults','searchResults'].forEach(id=>{if($(id))$(id).innerHTML=html})}
+function enroll(){call('enrollParticipant',{viagemId:$('enrollTrip').value,pessoaId:$('enrollPerson').value,valorPrevisto:$('expected').value,observacoes:$('enrollNotes').value},'enrollStatus',renderParticipants)}
+function clearEnroll(){$('enrollPerson').value='';$('expected').value='0';$('enrollNotes').value=''}
+function renderParticipants(){const id=$('enrollTrip')?.value;if(!id)return;google.script.run.withSuccessHandler(p=>{$('participantList').innerHTML=table(['Participante','Situação','Previsto','Pago','Saldo'],p.map(x=>[x.nome,x.status,money(x.previsto),money(x.pago),money(x.saldo)]))}).listParticipants(id)}
+function cancelEnrollment(){const id=$('reportParticipant')?.value;if(!id){msg('enrollStatus','Selecione uma inscrição na tela de relatórios para cancelar.');return}if(!confirm('Cancelar esta inscrição? O histórico será preservado.'))return;google.script.run.withSuccessHandler(()=>{msg('enrollStatus','Inscrição cancelada. Histórico preservado.');refresh()}).withFailureHandler(e=>msg('enrollStatus',e.message)).cancelParticipation(id)}
+function loadPaymentPeople(){const id=$('paymentTrip').value;if(!id)return;google.script.run.withSuccessHandler(p=>fill('paymentParticipant',p,'Selecione uma inscrição')).listParticipants(id)}
+function registerPayment(){call('registerPayment',{participacaoId:$('paymentParticipant').value,data:$('paymentDate').value,valor:$('paymentAmount').value,forma:$('paymentMethod').value,observacoes:$('paymentNotes').value},'paymentStatus',clearPayment)}
+function clearPayment(){$('paymentAmount').value='';$('paymentNotes').value=''}
+function createVehicle(){call('createVehicle',{viagemId:$('vehicleTrip').value,tipo:$('vehicleType').value,identificacao:$('vehicleName').value,capacidade:$('vehicleCapacity').value},'vehicleStatus',loadVehicles)}
+function loadVehicles(){const id=$('vehicleTrip')?.value;if(!id)return;google.script.run.withSuccessHandler(v=>{$('vehicleList').innerHTML=table(['Tipo','Identificação','Capacidade'],v.map(x=>[x.tipo,x.identificacao,x.capacidade]))}).listVehicles(id)}
+function loadSeatMap(){const trip=$('seatTrip')?.value;if(!trip)return;google.script.run.withSuccessHandler(p=>fill('seatParticipant',p,'Selecione participante')).listParticipants(trip);google.script.run.withSuccessHandler(s=>{const free=s.filter(x=>x.status==='LIVRE');$('seatChoice').innerHTML='<option value="">Selecione assento livre</option>'+free.map(x=>'<option value="'+x.veiculoId+'|'+x.numero+'">'+esc(x.veiculo)+' — '+x.numero+'</option>').join('');$('seatMap').innerHTML=s.length?table(['Veículo','Assento','Passageiro','Situação'],s.map(x=>[x.veiculo,x.numero,x.passageiro||'—',x.status])):'<p>Nenhum veículo/assento cadastrado para esta viagem.</p>'}).getSeatMap(trip)}
+function assignSeat(){const a=$('seatChoice').value.split('|');if(a.length!==2){msg('seatStatus','Selecione um assento livre.');return}call('assignSeat',{participacaoId:$('seatParticipant').value,veiculoId:a[0],numeroAssento:a[1]},'seatStatus',loadSeatMap)}
+function loadReportParticipants(){const id=$('reportTrip')?.value;if(!id)return;google.script.run.withSuccessHandler(p=>fill('reportParticipant',p.map(x=>({id:x.id,nome:x.nome+' — '+x.status})),'Selecione participante')).listParticipants(id)}
+function updateParticipantStatus(){google.script.run.withSuccessHandler(()=>{msg('reportArea','Situação atualizada.');loadReportParticipants()}).withFailureHandler(e=>msg('reportArea',e.message)).setParticipantStatus($('reportParticipant').value,$('participantStatus').value)}
+function money(n){return 'R$ '+Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}
+function table(head,rows){return '<div class="table-wrap"><table><thead><tr>'+head.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+(rows.length?rows.map(r=>'<tr>'+r.map(v=>'<td>'+esc(v==null?'—':v)+'</td>').join('')+'</tr>').join(''):'<tr><td colspan="'+head.length+'">Nenhum registro encontrado.</td></tr>')+'</tbody></table></div>'}
+function previewReport(){google.script.run.withSuccessHandler(r=>{const head='<h2>'+esc(r.title)+'</h2><p><b>'+esc(r.trip.nome)+'</b> — '+esc(r.trip.destino)+' — '+esc(r.trip.dataIda)+'</p>';let body='';if($('reportType').value==='resumo'){body='<p>Participantes: '+r.totals.participantes+' | Confirmados: '+r.totals.confirmados+' | Veículos: '+r.totals.veiculos+'</p><p>Previsto: '+money(r.totals.previsto)+' | Pago: '+money(r.totals.pago)+' | Saldo: '+money(r.totals.saldo)+'</p>'+table(['Veículo','Tipo','Capacidade','Ocupados','Livres'],r.vehicles.map(v=>[v.nome,v.tipo,v.capacidade,v.ocupados,v.livres]))}else if($('reportType').value==='pagamentos'){body='<p>Previsto: '+money(r.totals.previsto)+' | Pago: '+money(r.totals.pago)+' | Saldo: '+money(r.totals.saldo)+'</p>'+table(['Pessoa','Data','Valor','Forma'],r.paymentDetails.map(p=>[p.nome,p.data,money(p.valor),p.forma]))}else{body=table(['Nome','Telefone','Situação','Veículo','Assento','Previsto','Pago','Saldo'],r.rows.map(p=>[p.nome,p.telefone,p.status,p.veiculo,p.assento,money(p.previsto),money(p.pago),money(p.saldo)]))}reportHtml='<article class="panel"><div class="inside">'+head+body+'</div></article>';$('reportArea').innerHTML=reportHtml}).withFailureHandler(e=>msg('reportArea',e.message)).getReportData($('reportTrip').value,$('reportType').value)}
+function printReport(){if(!reportHtml){msg('reportArea','Gere a visualização antes de imprimir.');return}const w=window.open('','_blank');if(!w){msg('reportArea','Permita a abertura de janelas para imprimir.');return}w.document.write('<html><head><title>Sistema de Viagens</title><style>body{font:12px Arial;color:#123}table{width:100%;border-collapse:collapse}td,th{border:1px solid #bbb;padding:6px;text-align:left}th{background:#e5effb}</style></head><body>'+reportHtml+'</body></html>');w.document.close();w.print()}
+document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.screen)));
+refresh();
+</script>
 </body>
 </html>
