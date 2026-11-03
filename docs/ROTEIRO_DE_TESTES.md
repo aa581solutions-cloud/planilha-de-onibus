@@ -61,3 +61,17 @@ Todos os testes devem passar sem dados de produção. Falhas devem ser corrigida
 - [ ] Importar participantes somente para a viagem ativa e bloquear duplicidade de vínculo.
 - [ ] Importar pagamentos somente para participantes já vinculados e preservar todos os lançamentos.
 - [ ] Conferir que nenhuma importação apaga ou substitui registros existentes.
+
+
+## Programação diária de transporte — DEV.7
+- [ ] Criar Assembleia e conferir um único dia com ida pela manhã e volta à tarde.
+- [ ] Criar Congresso e conferir três dias consecutivos, cada um com ida e volta.
+- [ ] Alterar horários de ida e volta individualmente em cada dia do Congresso.
+- [ ] Criar Betel com período de vários dias e desativar dias sem transporte.
+- [ ] Criar Território isolado com dias de transporte não consecutivos.
+- [ ] Criar evento personalizado com quantidade de dias configurada.
+- [ ] Tentar salvar dia ativo sem ida ou sem volta e conferir bloqueio.
+- [ ] Tentar configurar volta anterior ou igual à ida e conferir bloqueio.
+- [ ] Conferir que cada dia de programação fica ligado à ViagemID correta.
+- [ ] Executar a preparação duas vezes e confirmar que PROGRAMACAO e novas colunas não duplicam nem apagam dados.
+- [ ] Conferir que viagens já existentes continuam listadas e acessíveis.
