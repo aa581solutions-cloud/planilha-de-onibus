@@ -175,12 +175,18 @@ function assignSeat(data) {
     const v = rows_('VEICULOS').find(r => r.VeiculoID === data.veiculoId && r.Status === 'ATIVO');
     if (!v || v.ViagemID !== p.ViagemID) throw new Error('Veículo não pertence à mesma viagem.');
     const seatNo = Number(data.numeroAssento);
-    const seat = rows_('ASSENTOS').find(r =>
+    const allSeats = rows_('ASSENTOS');
+    const seat = allSeats.find(r =>
       r.ViagemID === p.ViagemID && r.VeiculoID === v.VeiculoID && Number(r.NumeroAssento) === seatNo
     );
     if (!seat) throw new Error('Assento não existe neste veículo.');
     if (seat.Status === 'OCUPADO' && seat.ParticipacaoID !== p.ParticipacaoID) throw new Error('Assento já ocupado.');
     const sh = sheet_('ASSENTOS');
+    // Se a participação já tinha lugar, libera o anterior antes de mover.
+    allSeats.filter(s => s.ParticipacaoID === p.ParticipacaoID && s.AssentoID !== seat.AssentoID).forEach(previous => {
+      const previousRow = findRowById_(sh, 'AssentoID', previous.AssentoID);
+      sh.getRange(previousRow, 5, 1, 3).setValues([['LIVRE', '', new Date()]]);
+    });
     const row = findRowById_(sh, 'AssentoID', seat.AssentoID);
     sh.getRange(row, 5, 1, 3).setValues([['OCUPADO', p.ParticipacaoID, new Date()]]);
     const psh = sheet_('PARTICIPANTES');
