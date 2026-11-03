@@ -28,4 +28,4 @@ O desenvolvimento deve obedecer às instruções e decisões confirmadas pelo us
 - [Manifesto](apps-script/appsscript.json)
 
 ## Estado atual
-Versão 0.1.0-dev.2: documentação, backend inicial, formulários, consulta/atribuição de assentos e prévia básica de resumo/ impressão no repositório. Ainda não existe uma planilha Google real criada ou publicada. A interface ainda não reproduz a prévia visual final aprovada; faltam as listas completas, relatórios detalhados, testes completos e instalação na conta Google.
+Versão 0.1.0-dev.3: documentação, backend inicial, formulários, consulta/atribuição de assentos e prévia básica de resumo/ impressão no repositório. As seis consultas de listas e relatórios e a prévia com impressão A4 (retrato/paisagem) foram adicionadas ao protótipo. Ainda não existe uma planilha Google real criada ou publicada. A interface ainda não reproduz a prévia visual final aprovada; falta a gestão de status para confirmação de passageiros, testes completos e instalação na conta Google.
