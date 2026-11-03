@@ -4,37 +4,105 @@
   <base target="_top">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body{font:14px Arial,sans-serif;margin:0;padding:18px;background:#f3f7fc;color:#183153}
-    .card{background:#fff;border:1px solid #d9e4f2;border-radius:12px;padding:16px;margin-bottom:12px}
-    h2{font-size:18px;margin:0 0 8px}p{color:#61738a;line-height:1.45}
-    .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .stat{background:#edf4fc;border-radius:9px;padding:12px}
-    .num{font-size:24px;font-weight:700;color:#1769aa}
-    button{background:#1769aa;color:white;border:0;border-radius:8px;padding:10px 14px;cursor:pointer}
-    small{color:#61738a}
+    :root{--blue:#1769aa;--navy:#15385b;--line:#d8e4f1;--bg:#f2f6fb;--muted:#63758b}
+    *{box-sizing:border-box}body{font:13px Arial,sans-serif;margin:0;padding:14px;background:var(--bg);color:var(--navy)}
+    header,.panel{background:#fff;border:1px solid var(--line);border-radius:11px;padding:14px;margin-bottom:11px}
+    header h2{font-size:17px;margin:0 0 5px}p{color:var(--muted);line-height:1.4;margin:5px 0}
+    h3{font-size:14px;margin:0 0 10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+    .stat{background:#edf4fc;padding:10px;border-radius:8px}.num{font-size:22px;font-weight:bold;color:var(--blue)}
+    label{display:block;font-weight:600;margin:9px 0 4px}input,select,textarea{width:100%;padding:9px;border:1px solid #cbd8e7;border-radius:7px;background:white;color:#183153}
+    button{border:0;border-radius:7px;background:var(--blue);color:#fff;padding:9px 12px;font-weight:600;cursor:pointer;margin-top:10px}
+    button.secondary{background:#e8f0f8;color:var(--navy)}.status{font-size:12px;color:var(--muted);margin-top:8px;min-height:16px}
+    .row{display:flex;gap:7px}.row>*{flex:1;min-width:0}.hidden{display:none}
+    nav{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0}nav button{margin:0;padding:7px 9px;font-size:11px}
+    .list{font-size:12px;line-height:1.5;color:var(--muted);max-height:150px;overflow:auto}
   </style>
 </head>
 <body>
-  <section class="card">
+  <header>
     <h2>Planilha de Ônibus — Betel 90</h2>
-    <p>Painel inicial de operação. Os cadastros começam vazios. A interface visual definitiva será ajustada para corresponder fielmente à prévia aprovada.</p>
-    <button onclick="google.script.run.withSuccessHandler(load).setupBetel90()">Verificar estrutura</button>
+    <p>Área de operação inicial. A estrutura começa vazia. Os dados são cadastrados manualmente.</p>
+    <button class="secondary" onclick="prepare()">Preparar / verificar estrutura</button>
+    <div id="globalStatus" class="status"></div>
+  </header>
+  <section class="panel">
+    <h3>Resumo</h3><div class="grid" id="stats"><div class="stat">Carregando...</div></div>
   </section>
-  <section class="card">
-    <h2>Resumo</h2>
-    <div class="stats" id="stats"><small>Carregando...</small></div>
+  <nav>
+    <button onclick="show('person')">Pessoas</button>
+    <button onclick="show('trip')">Viagens</button>
+    <button onclick="show('enroll')">Inscrições</button>
+    <button onclick="show('vehicle')">Veículos</button>
+    <button onclick="show('payment')">Pagamentos</button>
+  </nav>
+  <section id="person" class="panel">
+    <h3>Novo cadastro de pessoa</h3>
+    <form onsubmit="submitPerson(event)">
+      <label>Nome completo *</label><input name="nome" required>
+      <label>Telefone</label><input name="telefone" placeholder="Opcional">
+      <label>Observações</label><textarea name="observacoes" rows="2"></textarea>
+      <button type="submit">Cadastrar pessoa</button>
+    </form><div id="personStatus" class="status"></div>
+  </section>
+  <section id="trip" class="panel hidden">
+    <h3>Nova viagem</h3>
+    <form onsubmit="submitTrip(event)">
+      <label>Nome da viagem *</label><input name="nome" required>
+      <div class="row"><div><label>Data de ida *</label><input type="date" name="dataIda" required></div><div><label>Data de retorno</label><input type="date" name="dataRetorno"></div></div>
+      <label>Destino</label><input name="destino">
+      <label>Observações</label><textarea name="observacoes" rows="2"></textarea>
+      <button type="submit">Cadastrar viagem</button>
+    </form><div id="tripStatus" class="status"></div>
+  </section>
+  <section id="enroll" class="panel hidden">
+    <h3>Inscrever pessoa na viagem</h3>
+    <label>Viagem *</label><select id="enrollTrip" required></select>
+    <label>Pessoa *</label><select id="enrollPerson" required></select>
+    <label>Valor previsto da passagem</label><input id="expected" type="number" min="0" step="0.01" value="0">
+    <button onclick="enroll()">Confirmar inscrição</button><div id="enrollStatus" class="status"></div>
+  </section>
+  <section id="vehicle" class="panel hidden">
+    <h3>Cadastrar veículo</h3>
+    <label>Viagem *</label><select id="vehicleTrip" required></select>
+    <label>Tipo *</label><select id="vehicleType"><option>Ônibus</option><option>Van</option><option>Carro</option><option>Outro</option></select>
+    <label>Identificação *</label><input id="vehicleName" placeholder="Ex.: Ônibus 1" required>
+    <label>Quantidade de assentos *</label><input id="vehicleCapacity" type="number" min="1" step="1" required>
+    <button onclick="createVehicle()">Cadastrar veículo e gerar assentos</button><div id="vehicleStatus" class="status"></div>
+  </section>
+  <section id="payment" class="panel hidden">
+    <h3>Registrar pagamento</h3>
+    <label>Viagem *</label><select id="paymentTrip" onchange="loadParticipants()" required></select>
+    <label>Participante *</label><select id="paymentParticipant" required></select>
+    <div class="row"><div><label>Data *</label><input id="paymentDate" type="date" required></div><div><label>Valor *</label><input id="paymentAmount" type="number" min="0.01" step="0.01" required></div></div>
+    <label>Forma de pagamento</label><input id="paymentMethod" placeholder="Dinheiro, PIX, transferência...">
+    <button onclick="registerPayment()">Salvar pagamento</button><div id="paymentStatus" class="status"></div>
   </section>
   <script>
-    function load(){
-      google.script.run.withSuccessHandler(data=>{
-        document.getElementById('stats').innerHTML=[
-          ['Pessoas',data.people],['Viagens',data.trips],
-          ['Inscrições',data.participants],['Pagamentos',data.payments],
-          ['Veículos',data.vehicles]
-        ].map(x=>'<div class="stat"><div class="num">'+x[1]+'</div><div>'+x[0]+'</div></div>').join('');
-      }).getAppSummary();
+    function show(id){['person','trip','enroll','vehicle','payment'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));}
+    function msg(id,text){document.getElementById(id).textContent=text;}
+    function call(name,args,statusId,done){
+      const runner=google.script.run.withSuccessHandler(r=>{msg(statusId,'Concluído. '+(r&&r.id?'Código: '+r.id:''));if(done)done(r);refresh();})
+        .withFailureHandler(e=>msg(statusId,'Não foi possível concluir: '+e.message));
+      runner[name](args);
     }
-    load();
+    function prepare(){google.script.run.withSuccessHandler(()=>{msg('globalStatus','Estrutura verificada; nenhum cadastro foi criado.');refresh();})
+      .withFailureHandler(e=>msg('globalStatus',e.message)).setupBetel90();}
+    function submitPerson(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.target).entries());call('addPerson',d,'personStatus',()=>e.target.reset());}
+    function submitTrip(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.target).entries());call('addTrip',d,'tripStatus',()=>e.target.reset());}
+    function fill(id,items,placeholder){const el=document.getElementById(id);const old=el.value;el.innerHTML='<option value="">'+placeholder+'</option>'+items.map(x=>'<option value="'+x.id+'">'+x.nome+'</option>').join('');if(items.some(x=>x.id===old))el.value=old;}
+    function refresh(){
+      google.script.run.withSuccessHandler(d=>{
+        document.getElementById('stats').innerHTML=[['Pessoas',d.people],['Viagens',d.trips],['Inscrições',d.participants],['Pagamentos',d.payments],['Veículos',d.vehicles]]
+          .map(x=>'<div class="stat"><div class="num">'+x[1]+'</div>'+x[0]+'</div>').join('');
+      }).getAppSummary();
+      google.script.run.withSuccessHandler(p=>fill('enrollPerson',p,'Selecione uma pessoa')).listPeople();
+      google.script.run.withSuccessHandler(t=>{fill('enrollTrip',t,'Selecione uma viagem');fill('vehicleTrip',t,'Selecione uma viagem');fill('paymentTrip',t,'Selecione uma viagem');}).listTrips();
+    }
+    function enroll(){call('enrollParticipant',{viagemId:document.getElementById('enrollTrip').value,pessoaId:document.getElementById('enrollPerson').value,valorPrevisto:document.getElementById('expected').value},'enrollStatus');}
+    function createVehicle(){call('createVehicle',{viagemId:document.getElementById('vehicleTrip').value,tipo:document.getElementById('vehicleType').value,identificacao:document.getElementById('vehicleName').value,capacidade:document.getElementById('vehicleCapacity').value},'vehicleStatus');}
+    function loadParticipants(){const id=document.getElementById('paymentTrip').value;google.script.run.withSuccessHandler(p=>{const el=document.getElementById('paymentParticipant');el.innerHTML='<option value="">Selecione</option>'+p.map(x=>'<option value="'+x.id+'">'+x.nome+'</option>').join('');}).listParticipants(id);}
+    function registerPayment(){call('registerPayment',{participacaoId:document.getElementById('paymentParticipant').value,data:document.getElementById('paymentDate').value,valor:document.getElementById('paymentAmount').value,forma:document.getElementById('paymentMethod').value},'paymentStatus');}
+    refresh();
   </script>
 </body>
 </html>
