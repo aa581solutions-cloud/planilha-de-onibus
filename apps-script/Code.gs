@@ -6,7 +6,7 @@
 
 const APP = Object.freeze({
   name: 'Sistema de Viagens',
-  version: '0.1.0-dev.5',
+  version: '0.1.0-dev.6',
   sheets: {
     PAINEL: [],
     PESSOAS: ['PessoaID', 'Nome', 'Telefone', 'Observacoes', 'CriadoEm', 'AtualizadoEm', 'Status', 'TipoDocumento', 'NumeroDocumento', 'OrgaoEmissor'],
@@ -146,7 +146,14 @@ function addPerson(data) {
     if (duplicate) throw new Error('Já existe cadastro ativo com este nome e telefone.');
     const id = newId_('P');
     sh.appendRow([id, name, phone, clean_(data.observacoes || ''), new Date(), new Date(), 'ATIVO', clean_(data.tipoDocumento || ''), clean_(data.numeroDocumento || ''), clean_(data.orgaoEmissor || '')]);
-    return { id: id };
+    let participacaoId = '';
+    if (data.viagemId) {
+      const trip = rows_('VIAGENS').find(r => r.ViagemID === data.viagemId && r.Status !== 'CANCELADA');
+      if (!trip) throw new Error('A viagem selecionada não está disponível. O cadastro da pessoa foi salvo; selecione uma viagem válida para vinculá-la.');
+      participacaoId = newId_('PV');
+      sheet_('PARTICIPANTES').appendRow([participacaoId, data.viagemId, id, 'PENDENTE', '', '', 0, '', new Date(), new Date()]);
+    }
+    return { id: id, participacaoId: participacaoId };
   });
 }
 
@@ -457,6 +464,124 @@ function getReportData(viagemId,tipo){
 }
 
 function reportDate_(value){return value instanceof Date?Utilities.formatDate(value,Session.getScriptTimeZone(),'dd/MM/yyyy'):String(value||'');}
+
+
+/** Importação em lote: recebe matriz com cabeçalho na primeira linha. */
+function previewBatchImport(tipo, viagemId, matriz) {
+  if (!Array.isArray(matriz) || matriz.length < 2) throw new Error('Inclua o cabeçalho e pelo menos uma linha de dados.');
+  if (!['pessoas','participantes','pagamentos'].includes(tipo)) throw new Error('Tipo de importação inválido.');
+  if (tipo !== 'pessoas' && !viagemId) throw new Error('Selecione a viagem antes de importar estes registros.');
+  const headers = matriz[0].map(h => norm_(h));
+  const idx = names => headers.findIndex(h => names.includes(h));
+  const col = {
+    nome: idx(['nome','nome completo','passageiro','pessoa']),
+    pessoaId: idx(['pessoaid','id pessoa','id']),
+    telefone: idx(['telefone','celular','whatsapp']),
+    tipoDocumento: idx(['tipodocumento','tipo documento','documento tipo']),
+    numeroDocumento: idx(['numerodocumento','numero documento','documento']),
+    orgaoEmissor: idx(['orgaoemissor','orgao emissor']),
+    observacoes: idx(['observacoes','observação','observacoes']),
+    valorPrevisto: idx(['valorprevisto','valor previsto','previsto']),
+    data: idx(['data','data pagamento']),
+    valor: idx(['valor','valor pago','pagamento']),
+    forma: idx(['forma','forma pagamento','meio pagamento']),
+    referencia: idx(['referencia','referência'])
+  };
+  if (tipo === 'pessoas' && col.nome < 0) throw new Error('A importação de pessoas precisa de uma coluna Nome.');
+  if (tipo === 'participantes' && col.nome < 0 && col.pessoaId < 0) throw new Error('Use uma coluna Nome ou PessoaID para identificar os participantes.');
+  if (tipo === 'pagamentos' && (col.nome < 0 && col.pessoaId < 0 || col.data < 0 || col.valor < 0)) throw new Error('Pagamentos precisam de Pessoa/Nome ou PessoaID, Data e Valor.');
+  const people = rows_('PESSOAS');
+  const parts = rows_('PARTICIPANTES');
+  const trips = rows_('VIAGENS');
+  if (tipo !== 'pessoas' && !trips.some(t => t.ViagemID === viagemId && t.Status !== 'CANCELADA')) throw new Error('Viagem não encontrada ou cancelada.');
+  const seen = new Set();
+  const result = [];
+  let duplicados = 0, invalidos = 0;
+  matriz.slice(1).forEach((line, n) => {
+    if (!line || !line.some(v => clean_(v) !== '')) return;
+    const get = k => col[k] >= 0 ? clean_(line[col[k]]) : '';
+    const row = { linha: n + 2, nome: get('nome'), pessoaId: get('pessoaId'), telefone: get('telefone'),
+      tipoDocumento: get('tipoDocumento'), numeroDocumento: get('numeroDocumento'), orgaoEmissor: get('orgaoEmissor'),
+      observacoes: get('observacoes'), valorPrevisto: get('valorPrevisto'), data: get('data'), valor: get('valor'),
+      forma: get('forma'), referencia: get('referencia') };
+    let status = 'PRONTO', motivo = '';
+    if (tipo === 'pessoas') {
+      if (!row.nome) { status='ERRO'; motivo='Nome não informado'; }
+      else {
+        const key = norm_(row.nome)+'|'+norm_(row.telefone);
+        if (seen.has(key) || people.some(p => norm_(p.Nome)===norm_(row.nome) && norm_(p.Telefone)===norm_(row.telefone) && p.Status!=='INATIVO')) { status='DUPLICADO'; motivo='Pessoa já cadastrada ou repetida no arquivo'; }
+        seen.add(key);
+      }
+    } else {
+      const person = people.find(p => (row.pessoaId && p.PessoaID===row.pessoaId) || (row.nome && norm_(p.Nome)===norm_(row.nome) && (!row.telefone || norm_(p.Telefone)===norm_(row.telefone))) && p.Status==='ATIVO');
+      if (!person) { status='ERRO'; motivo='Pessoa não encontrada no cadastro único'; }
+      else {
+        row.pessoaId = person.PessoaID; row.nome = person.Nome;
+        const part = parts.find(p => p.ViagemID===viagemId && p.PessoaID===person.PessoaID && p.Status!=='CANCELADO');
+        if (tipo==='participantes' && (part || seen.has(person.PessoaID))) { status='DUPLICADO'; motivo='Pessoa já vinculada a esta viagem'; }
+        if (tipo==='pagamentos' && !part) { status='ERRO'; motivo='Pessoa ainda não está vinculada a esta viagem'; }
+        if (tipo==='pagamentos' && (!row.data || !Number.isFinite(Number(row.valor)) || Number(row.valor)<=0)) { status='ERRO'; motivo='Data ou valor inválido'; }
+        if (tipo==='participantes' && row.valorPrevisto && (!Number.isFinite(Number(row.valorPrevisto)) || Number(row.valorPrevisto)<0)) { status='ERRO'; motivo='Valor previsto inválido'; }
+        if (tipo==='participantes') seen.add(person.PessoaID);
+        if (tipo==='pagamentos' && part) row.participacaoId=part.ParticipacaoID;
+      }
+    }
+    if (status==='DUPLICADO') duplicados++;
+    if (status==='ERRO') invalidos++;
+    result.push({linha:row.linha,nome:row.nome,status:status,motivo:motivo});
+  });
+  return {tipo:tipo,total:result.length,prontos:result.filter(x=>x.status==='PRONTO').length,duplicados:duplicados,invalidos:invalidos,linhas:result};
+}
+
+function applyBatchImport(tipo, viagemId, matriz) {
+  return withLock_(() => {
+    const preview = previewBatchImport(tipo, viagemId, matriz);
+    const headers = matriz[0].map(h => norm_(h));
+    const idx = names => headers.findIndex(h => names.includes(h));
+    const col = {nome:idx(['nome','nome completo','passageiro','pessoa']),pessoaId:idx(['pessoaid','id pessoa','id']),
+      telefone:idx(['telefone','celular','whatsapp']),tipoDocumento:idx(['tipodocumento','tipo documento','documento tipo']),
+      numeroDocumento:idx(['numerodocumento','numero documento','documento']),orgaoEmissor:idx(['orgaoemissor','orgao emissor']),
+      observacoes:idx(['observacoes','observação','observacoes']),valorPrevisto:idx(['valorprevisto','valor previsto','previsto']),
+      data:idx(['data','data pagamento']),valor:idx(['valor','valor pago','pagamento']),forma:idx(['forma','forma pagamento','meio pagamento']),referencia:idx(['referencia','referência'])};
+    const ready = new Set(preview.linhas.filter(x=>x.status==='PRONTO').map(x=>x.linha));
+    let imported=0;
+    matriz.slice(1).forEach((line,i)=>{
+      const lineNo=i+2; if(!ready.has(lineNo)) return;
+      const get=k=>col[k]>=0?clean_(line[col[k]]):'';
+      if(tipo==='pessoas'){
+        const name=get('nome'), phone=get('telefone'), id=newId_('P');
+        sheet_('PESSOAS').appendRow([id,name,phone,get('observacoes'),new Date(),new Date(),'ATIVO',get('tipoDocumento'),get('numeroDocumento'),get('orgaoEmissor')]);
+      } else {
+        const people=rows_('PESSOAS');
+        const person=people.find(p=>(get('pessoaId')&&p.PessoaID===get('pessoaId'))||(get('nome')&&norm_(p.Nome)===norm_(get('nome'))&&(!get('telefone')||norm_(p.Telefone)===norm_(get('telefone'))))&&p.Status==='ATIVO');
+        const part=rows_('PARTICIPANTES').find(p=>p.ViagemID===viagemId&&p.PessoaID===person.PessoaID&&p.Status!=='CANCELADO');
+        if(tipo==='participantes'){
+          sheet_('PARTICIPANTES').appendRow([newId_('PV'),viagemId,person.PessoaID,'PENDENTE','','',Number(get('valorPrevisto')||0),get('observacoes'),new Date(),new Date()]);
+        } else {
+          sheet_('PAGAMENTOS').appendRow([newId_('PG'),part.ParticipacaoID,get('data'),Number(get('valor')),get('forma'),get('referencia'),get('observacoes'),new Date()]);
+        }
+      }
+      imported++;
+    });
+    return {importados:imported,duplicados:preview.duplicados,invalidos:preview.invalidos};
+  });
+}
+
+/** Converte arquivo XLSX temporariamente para Planilhas e devolve a primeira aba como matriz. Requer serviço avançado Drive API v3. */
+function readXlsxImport(base64, fileName) {
+  if (typeof Drive === 'undefined' || !Drive.Files) throw new Error('Ative o serviço avançado Google Drive API no Apps Script para importar XLSX.');
+  const bytes = Utilities.base64Decode(base64);
+  const blob = Utilities.newBlob(bytes, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', fileName || 'importacao.xlsx');
+  let tempId = '';
+  try {
+    const converted = Drive.Files.create({name:'TEMP_IMPORT_SISTEMA_VIAGENS',mimeType:'application/vnd.google-apps.spreadsheet'}, blob);
+    tempId = converted.id;
+    const values = SpreadsheetApp.openById(tempId).getSheets()[0].getDataRange().getDisplayValues();
+    return values;
+  } finally {
+    if (tempId) Drive.Files.update({trashed:true}, tempId);
+  }
+}
 
 function setParticipantStatus(participacaoId,status){
   if(!participacaoId) throw new Error('Selecione um participante.');
