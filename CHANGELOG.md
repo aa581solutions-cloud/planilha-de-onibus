@@ -2,6 +2,7 @@
 
 ## 0.1.0-dev.4 — 2026-11-03
 - Reconstruída a interface com navegação lateral e telas separadas, seguindo a composição visual das três referências oficiais.
+- O painel passou a abrir em janela ampla (diálogo) em vez da barra lateral estreita do Planilhas.
 - Incluídos painel principal, cadastro de pessoas, viagens, inscrição, pagamentos, veículos, mapa de assentos, relatórios, pesquisa e configurações.
 - Corrigida a identidade textual: o nome oficial passa a ser Sistema de Viagens; a marca Betel 90 não deve aparecer na interface.
 - Atualizada a identificação e versão do backend; operações e estrutura de dados anteriores foram preservadas.
