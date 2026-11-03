@@ -6,7 +6,7 @@ As três imagens enviadas pelo usuário em 03/11/2026, preservadas na raiz do re
 2. [Painel — Sistema de Viagens — telas 1 a 8](../Painel%20Betel%2090_%20Sistema%20de%20Viagens-1.png)
 3. [Painel — Sistema de Viagens — telas 1 a 9](../Painel%20Betel%2090_%20Sistema%20de%20Viagens-2.png)
 
-**Correção de identidade:** as imagens contêm a marca Betel 90 por engano. O nome oficial do produto é **Sistema de Viagens**. A implementação deve substituir apenas essa marca textual, preservando o restante do conceito visual aprovado.
+**Identidade oficial:** Sistema de Viagens. As prévias são referências de composição visual; a interface deve usar o nome oficial Sistema de Viagens, preservando o layout aprovado.
 
 As imagens orientam a estrutura, disposição, cores, tipografia, espaçamentos, navegação e aparência das telas reconstruídas em Google Planilhas + Apps Script.
 
