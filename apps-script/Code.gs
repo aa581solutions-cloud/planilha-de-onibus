@@ -360,7 +360,7 @@ function withLock_(fn) {
 
 function listPeople() {
   return rows_('PESSOAS').filter(r => r.Status === 'ATIVO')
-    .map(r => ({ id: r.PessoaID, nome: r.Nome, telefone: r.Telefone, tipoDocumento: r.TipoDocumento || '', numeroDocumento: r.NumeroDocumento || '', orgaoEmissor: r.OrgaoEmissor || '' }));
+    .map(r => ({ id: r.PessoaID, nome: r.Nome, telefone: r.Telefone, observacoes: r.Observacoes || '', tipoDocumento: r.TipoDocumento || '', numeroDocumento: r.NumeroDocumento || '', orgaoEmissor: r.OrgaoEmissor || '' }));
 }
 
 function listTrips() {
