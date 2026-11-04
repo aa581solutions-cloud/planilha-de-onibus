@@ -6,11 +6,12 @@
 
 const APP = Object.freeze({
   name: 'Sistema de Viagens',
-  version: '0.1.0-dev.5',
+  version: '0.1.0-dev.8',
   sheets: {
     PAINEL: [],
     PESSOAS: ['PessoaID', 'Nome', 'Telefone', 'Observacoes', 'CriadoEm', 'AtualizadoEm', 'Status', 'TipoDocumento', 'NumeroDocumento', 'OrgaoEmissor'],
-    VIAGENS: ['ViagemID', 'Nome', 'DataIda', 'DataRetorno', 'Destino', 'Status', 'Observacoes', 'CriadoEm'],
+    VIAGENS: ['ViagemID', 'Nome', 'DataIda', 'DataRetorno', 'Destino', 'Status', 'Observacoes', 'CriadoEm', 'TipoEvento', 'DiasProgramados'],
+    PROGRAMACAO: ['ProgramacaoID', 'ViagemID', 'Data', 'DiaAtivo', 'HoraIda', 'HoraVolta', 'Ordem', 'CriadoEm'],
     PARTICIPANTES: ['ParticipacaoID', 'ViagemID', 'PessoaID', 'Status', 'VeiculoID', 'NumeroAssento', 'ValorPrevisto', 'Observacoes', 'CriadoEm', 'AtualizadoEm'],
     PAGAMENTOS: ['PagamentoID', 'ParticipacaoID', 'Data', 'Valor', 'Forma', 'Referencia', 'Observacoes', 'RegistradoEm'],
     VEICULOS: ['VeiculoID', 'ViagemID', 'Tipo', 'Identificacao', 'Capacidade', 'Status', 'Observacoes', 'CriadoEm'],
@@ -144,9 +145,17 @@ function addPerson(data) {
       norm_(r.Nome) === norm_(name) && norm_(r.Telefone) === norm_(phone) && r.Status !== 'INATIVO'
     );
     if (duplicate) throw new Error('Já existe cadastro ativo com este nome e telefone.');
+    if (data.viagemId && !rows_('VIAGENS').some(r => r.ViagemID === data.viagemId && r.Status !== 'CANCELADA')) {
+      throw new Error('A viagem selecionada não está disponível. Nenhum cadastro foi gravado.');
+    }
     const id = newId_('P');
     sh.appendRow([id, name, phone, clean_(data.observacoes || ''), new Date(), new Date(), 'ATIVO', clean_(data.tipoDocumento || ''), clean_(data.numeroDocumento || ''), clean_(data.orgaoEmissor || '')]);
-    return { id: id };
+    let participacaoId = '';
+    if (data.viagemId) {
+      participacaoId = newId_('PV');
+      sheet_('PARTICIPANTES').appendRow([participacaoId, data.viagemId, id, 'PENDENTE', '', '', 0, '', new Date(), new Date()]);
+    }
+    return { id: id, participacaoId: participacaoId };
   });
 }
 
@@ -173,15 +182,57 @@ function updatePerson(data) {
 }
 
 function addTrip(data) {
-  validateRequired_(data, ['nome', 'dataIda']);
-  return withLock_(() => {
-    const id = newId_('V');
-    sheet_('VIAGENS').appendRow([
-      id, clean_(data.nome), data.dataIda, data.dataRetorno || '',
-      clean_(data.destino || ''), 'PLANEJADA', clean_(data.observacoes || ''), new Date()
-    ]);
-    return { id: id };
+  validateRequired_(data, ['nome', 'tipoEvento']);
+  const schedule = Array.isArray(data.programacao) ? data.programacao : [];
+  if (!schedule.length) throw new Error('Inclua pelo menos um dia na programação.');
+  const activeDays = schedule.filter(d => d.ativo);
+  if (!activeDays.length) throw new Error('Selecione pelo menos um dia com transporte.');
+  activeDays.forEach((d, i) => {
+    validateRequired_(d, ['data', 'horaIda', 'horaVolta']);
+    if (d.horaVolta <= d.horaIda) throw new Error('A volta deve ocorrer depois da ida em ' + d.data + '.');
+    if (i && d.data <= activeDays[i - 1].data) throw new Error('As datas da programação devem estar em ordem crescente e sem repetição.');
   });
+  return withLock_(() => {
+    // Verifica as duas abas antes de gravar para evitar viagem parcial.
+    const tripsSheet = sheet_('VIAGENS');
+    const scheduleSheet = sheet_('PROGRAMACAO');
+    const firstDate = activeDays[0].data;
+    const lastDate = activeDays[activeDays.length - 1].data;
+    const tripName = clean_(data.nome);
+    const tripDestination = clean_(data.destino || '');
+    const tripType = clean_(data.tipoEvento);
+    const duplicate = rows_('VIAGENS').find(r =>
+      r.Status !== 'CANCELADA' &&
+      norm_(r.Nome) === norm_(tripName) &&
+      dateKey_(r.DataIda) === dateKey_(firstDate) &&
+      dateKey_(r.DataRetorno) === dateKey_(lastDate) &&
+      norm_(r.Destino) === norm_(tripDestination) &&
+      norm_(r.TipoEvento) === norm_(tripType)
+    );
+    if (duplicate) {
+      throw new Error('Esta viagem já está cadastrada (código ' + duplicate.ViagemID + '). Nenhum novo registro foi criado.');
+    }
+    const id = newId_('V');
+    tripsSheet.appendRow([
+      id, tripName, firstDate, lastDate,
+      tripDestination, 'PLANEJADA', clean_(data.observacoes || ''), new Date(),
+      tripType, activeDays.length
+    ]);
+    const sh = scheduleSheet;
+    const rows = schedule.map((d, i) => [
+      newId_('PR'), id, d.data, d.ativo ? 'SIM' : 'NAO',
+      d.ativo ? d.horaIda : '', d.ativo ? d.horaVolta : '', i + 1, new Date()
+    ]);
+    if (rows.length) sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+    return { id: id, diasProgramados: activeDays.length };
+  });
+}
+
+function listTripSchedule(viagemId) {
+  validateRequired_({viagemId: viagemId}, ['viagemId']);
+  return rows_('PROGRAMACAO').filter(r => r.ViagemID === viagemId)
+    .sort((a, b) => String(a.Data).localeCompare(String(b.Data)))
+    .map(r => ({ data: r.Data, ativo: r.DiaAtivo === 'SIM', horaIda: r.HoraIda || '', horaVolta: r.HoraVolta || '' }));
 }
 
 function enrollParticipant(data) {
@@ -364,8 +415,27 @@ function listPeople() {
 }
 
 function listTrips() {
-  return rows_('VIAGENS').filter(r => r.Status !== 'CANCELADA')
-    .map(r => ({ id: r.ViagemID, nome: r.Nome, dataIda: r.DataIda, destino: r.Destino, status: r.Status }));
+  return rows_('VIAGENS').filter(r => r.Status !== 'CANCELADA' && r.ViagemID)
+    .map(r => ({
+      id: clean_(r.ViagemID),
+      nome: clean_(r.Nome),
+      dataIda: dateKey_(r.DataIda),
+      dataRetorno: dateKey_(r.DataRetorno),
+      destino: clean_(r.Destino),
+      status: clean_(r.Status),
+      tipoEvento: clean_(r.TipoEvento || ''),
+      diasProgramados: Number(r.DiasProgramados || 0)
+    }))
+    .sort((a, b) => a.dataIda.localeCompare(b.dataIda) || a.nome.localeCompare(b.nome));
+}
+
+function dateKey_(value) {
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    return Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  }
+  const text = clean_(value);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+  return text;
 }
 
 function listParticipants(viagemId) {
@@ -457,6 +527,163 @@ function getReportData(viagemId,tipo){
 }
 
 function reportDate_(value){return value instanceof Date?Utilities.formatDate(value,Session.getScriptTimeZone(),'dd/MM/yyyy'):String(value||'');}
+
+
+/** Importação em lote: recebe matriz com cabeçalho na primeira linha. */
+
+function importAmount_(value) {
+  if (typeof value === 'number') return value;
+  let s = clean_(value).replace(/R\$/gi,'').replace(/\s/g,'');
+  if (s.includes(',')) s = s.replace(/\./g,'').replace(',','.');
+  return Number(s);
+}
+function importDateKey_(value) {
+  if (value instanceof Date) return Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  const s = clean_(value);
+  let m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (m) return m[3]+'-'+m[2]+'-'+m[1];
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? m[1]+'-'+m[2]+'-'+m[3] : s;
+}
+function importDateValue_(value) {
+  if (value instanceof Date) return value;
+  const s = clean_(value);
+  let m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (m) return new Date(Number(m[3]),Number(m[2])-1,Number(m[1]));
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (m) return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+  const d = new Date(s);
+  if (isNaN(d.getTime())) throw new Error('Data inválida na importação: '+s);
+  return d;
+}
+
+function previewBatchImport(tipo, viagemId, matriz) {
+  if (!Array.isArray(matriz) || matriz.length < 2) throw new Error('Inclua o cabeçalho e pelo menos uma linha de dados.');
+  if (!['pessoas','participantes','pagamentos'].includes(tipo)) throw new Error('Tipo de importação inválido.');
+  if (tipo !== 'pessoas' && !viagemId) throw new Error('Selecione a viagem antes de importar estes registros.');
+  const headers = matriz[0].map(h => norm_(h));
+  const idx = names => headers.findIndex(h => names.includes(h));
+  const col = {
+    nome: idx(['nome','nome completo','passageiro','pessoa']),
+    pessoaId: idx(['pessoaid','id pessoa','id']),
+    telefone: idx(['telefone','celular','whatsapp']),
+    tipoDocumento: idx(['tipodocumento','tipo documento','documento tipo']),
+    numeroDocumento: idx(['numerodocumento','numero documento','documento']),
+    orgaoEmissor: idx(['orgaoemissor','orgao emissor']),
+    observacoes: idx(['observacoes','observação','observacoes']),
+    valorPrevisto: idx(['valorprevisto','valor previsto','previsto']),
+    data: idx(['data','data pagamento']),
+    valor: idx(['valor','valor pago','pagamento']),
+    forma: idx(['forma','forma pagamento','meio pagamento']),
+    referencia: idx(['referencia','referência'])
+  };
+  if (tipo === 'pessoas' && col.nome < 0) throw new Error('A importação de pessoas precisa de uma coluna Nome.');
+  if (tipo === 'participantes' && col.nome < 0 && col.pessoaId < 0) throw new Error('Use uma coluna Nome ou PessoaID para identificar os participantes.');
+  if (tipo === 'pagamentos' && (col.nome < 0 && col.pessoaId < 0 || col.data < 0 || col.valor < 0)) throw new Error('Pagamentos precisam de Pessoa/Nome ou PessoaID, Data e Valor.');
+  const people = rows_('PESSOAS');
+  const parts = rows_('PARTICIPANTES');
+  const trips = rows_('VIAGENS');
+  if (tipo !== 'pessoas' && !trips.some(t => t.ViagemID === viagemId && t.Status !== 'CANCELADA')) throw new Error('Viagem não encontrada ou cancelada.');
+  const seen = new Set();
+  const result = [];
+  let duplicados = 0, invalidos = 0;
+  matriz.slice(1).forEach((line, n) => {
+    if (!line || !line.some(v => clean_(v) !== '')) return;
+    const get = k => col[k] >= 0 ? clean_(line[col[k]]) : '';
+    const row = { linha: n + 2, nome: get('nome'), pessoaId: get('pessoaId'), telefone: get('telefone'),
+      tipoDocumento: get('tipoDocumento'), numeroDocumento: get('numeroDocumento'), orgaoEmissor: get('orgaoEmissor'),
+      observacoes: get('observacoes'), valorPrevisto: get('valorPrevisto'), data: get('data'), valor: get('valor'),
+      forma: get('forma'), referencia: get('referencia') };
+    let status = 'PRONTO', motivo = '';
+    if (tipo === 'pessoas') {
+      if (!row.nome) { status='ERRO'; motivo='Nome não informado'; }
+      else {
+        const key = norm_(row.nome)+'|'+norm_(row.telefone);
+        const sameName = people.filter(p => norm_(p.Nome)===norm_(row.nome) && p.Status!=='INATIVO');
+        if (!row.telefone && (sameName.length || seen.has(key))) { status='ERRO'; motivo='Nome sem telefone para diferenciar; confira se é homônimo antes de importar'; }
+        else if (seen.has(key) || (row.telefone && sameName.some(p => norm_(p.Telefone)===norm_(row.telefone)))) { status='DUPLICADO'; motivo='Pessoa já cadastrada ou repetida no arquivo'; }
+        seen.add(key);
+      }
+    } else {
+      const matches = people.filter(p => p.Status==='ATIVO' && ((row.pessoaId && p.PessoaID===row.pessoaId) || (row.nome && norm_(p.Nome)===norm_(row.nome) && (!row.telefone || norm_(p.Telefone)===norm_(row.telefone)))));
+      const person = matches.length===1 ? matches[0] : null;
+      if (!person) { status='ERRO'; motivo=matches.length>1?'Nome ambíguo: informe PessoaID ou telefone para identificar sem risco.':'Pessoa não encontrada no cadastro único'; }
+      else {
+        row.pessoaId = person.PessoaID; row.nome = person.Nome;
+        const part = parts.find(p => p.ViagemID===viagemId && p.PessoaID===person.PessoaID && p.Status!=='CANCELADO');
+        if (tipo==='participantes' && (part || seen.has(person.PessoaID))) { status='DUPLICADO'; motivo='Pessoa já vinculada a esta viagem'; }
+        if (tipo==='pagamentos' && !part) { status='ERRO'; motivo='Pessoa ainda não está vinculada a esta viagem'; }
+        if (tipo==='pagamentos' && (!row.data || !Number.isFinite(importAmount_(row.valor)) || importAmount_(row.valor)<=0)) { status='ERRO'; motivo='Data ou valor inválido'; }
+        if (tipo==='participantes' && row.valorPrevisto && (!Number.isFinite(importAmount_(row.valorPrevisto)) || importAmount_(row.valorPrevisto)<0)) { status='ERRO'; motivo='Valor previsto inválido'; }
+        if (tipo==='participantes') seen.add(person.PessoaID);
+        if (tipo==='pagamentos' && part) {
+          row.participacaoId=part.ParticipacaoID;
+          const signature = [part.ParticipacaoID,importDateKey_(row.data),importAmount_(row.valor),norm_(row.forma),norm_(row.referencia)].join('|');
+          const already = rows_('PAGAMENTOS').some(pg => [pg.ParticipacaoID,importDateKey_(pg.Data),importAmount_(pg.Valor),norm_(pg.Forma),norm_(pg.Referencia)].join('|')===signature);
+          if (already || seen.has(signature)) { status='DUPLICADO'; motivo='Lançamento de pagamento já existente ou repetido no arquivo'; }
+          seen.add(signature);
+        }
+      }
+    }
+    if (status==='DUPLICADO') duplicados++;
+    if (status==='ERRO') invalidos++;
+    result.push({linha:row.linha,nome:row.nome,status:status,motivo:motivo});
+  });
+  return {tipo:tipo,total:result.length,prontos:result.filter(x=>x.status==='PRONTO').length,duplicados:duplicados,invalidos:invalidos,linhas:result};
+}
+
+function applyBatchImport(tipo, viagemId, matriz) {
+  return withLock_(() => {
+    const preview = previewBatchImport(tipo, viagemId, matriz);
+    const headers = matriz[0].map(h => norm_(h));
+    const idx = names => headers.findIndex(h => names.includes(h));
+    const col = {nome:idx(['nome','nome completo','passageiro','pessoa']),pessoaId:idx(['pessoaid','id pessoa','id']),
+      telefone:idx(['telefone','celular','whatsapp']),tipoDocumento:idx(['tipodocumento','tipo documento','documento tipo']),
+      numeroDocumento:idx(['numerodocumento','numero documento','documento']),orgaoEmissor:idx(['orgaoemissor','orgao emissor']),
+      observacoes:idx(['observacoes','observação','observacoes']),valorPrevisto:idx(['valorprevisto','valor previsto','previsto']),
+      data:idx(['data','data pagamento']),valor:idx(['valor','valor pago','pagamento']),forma:idx(['forma','forma pagamento','meio pagamento']),referencia:idx(['referencia','referência'])};
+    const ready = new Set(preview.linhas.filter(x=>x.status==='PRONTO').map(x=>x.linha));
+    let imported=0;
+    matriz.slice(1).forEach((line,i)=>{
+      const lineNo=i+2; if(!ready.has(lineNo)) return;
+      const get=k=>col[k]>=0?clean_(line[col[k]]):'';
+      if(tipo==='pessoas'){
+        const name=get('nome'), phone=get('telefone'), id=newId_('P');
+        sheet_('PESSOAS').appendRow([id,name,phone,get('observacoes'),new Date(),new Date(),'ATIVO',get('tipoDocumento'),get('numeroDocumento'),get('orgaoEmissor')]);
+        if (viagemId) sheet_('PARTICIPANTES').appendRow([newId_('PV'),viagemId,id,'PENDENTE','','',0,'',new Date(),new Date()]);
+      } else {
+        const people=rows_('PESSOAS');
+        const matches=people.filter(p=>p.Status==='ATIVO'&&((get('pessoaId')&&p.PessoaID===get('pessoaId'))||(get('nome')&&norm_(p.Nome)===norm_(get('nome'))&&(!get('telefone')||norm_(p.Telefone)===norm_(get('telefone'))))));
+        const person=matches.length===1?matches[0]:null;
+        if(!person) throw new Error('A identificação da pessoa ficou ambígua ou não foi localizada. Nenhuma linha desta operação deve ser presumida.');
+        const part=rows_('PARTICIPANTES').find(p=>p.ViagemID===viagemId&&p.PessoaID===person.PessoaID&&p.Status!=='CANCELADO');
+        if(tipo==='participantes'){
+          sheet_('PARTICIPANTES').appendRow([newId_('PV'),viagemId,person.PessoaID,'PENDENTE','','',(get('valorPrevisto')?importAmount_(get('valorPrevisto')):0),get('observacoes'),new Date(),new Date()]);
+        } else {
+          sheet_('PAGAMENTOS').appendRow([newId_('PG'),part.ParticipacaoID,importDateValue_(get('data')),importAmount_(get('valor')),get('forma'),get('referencia'),get('observacoes'),new Date()]);
+        }
+      }
+      imported++;
+    });
+    return {importados:imported,duplicados:preview.duplicados,invalidos:preview.invalidos};
+  });
+}
+
+/** Converte arquivo XLSX temporariamente para Planilhas e devolve a primeira aba como matriz. Requer serviço avançado Drive API v3. */
+function readXlsxImport(base64, fileName) {
+  if (typeof Drive === 'undefined' || !Drive.Files) throw new Error('Ative o serviço avançado Google Drive API no Apps Script para importar XLSX.');
+  const bytes = Utilities.base64Decode(base64);
+  const blob = Utilities.newBlob(bytes, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', fileName || 'importacao.xlsx');
+  let tempId = '';
+  try {
+    const converted = Drive.Files.create({name:'TEMP_IMPORT_SISTEMA_VIAGENS',mimeType:'application/vnd.google-apps.spreadsheet'}, blob);
+    tempId = converted.id;
+    const values = SpreadsheetApp.openById(tempId).getSheets()[0].getDataRange().getDisplayValues();
+    return values;
+  } finally {
+    if (tempId) Drive.Files.update({trashed:true}, tempId);
+  }
+}
 
 function setParticipantStatus(participacaoId,status){
   if(!participacaoId) throw new Error('Selecione um participante.');

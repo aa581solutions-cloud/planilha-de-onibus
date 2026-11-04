@@ -1,5 +1,22 @@
 # Changelog — Sistema de Viagens
 
+## 0.1.0-dev.7 — 03/11/2026
+- Criada programação diária de transporte vinculada à viagem, com ida e volta independentes por dia.
+- Assembleia usa um dia como padrão; Congresso usa três dias consecutivos como padrão.
+- Betel, território isolado e outros eventos permitem configurar a quantidade de dias e ativar somente os dias com transporte.
+- Criada aba interna PROGRAMACAO e ampliado o cadastro de viagens com tipo de evento e programação diária.
+- A preparação da estrutura continua não destrutiva; as novas colunas são acrescentadas ao final de VIAGENS.
+- Implementação ainda não validada em planilha Google real; não instalada nem publicada.
+
+## 0.1.0-dev.6 — 03/11/2026
+- Centralizada a identificação da viagem ativa: seleção automática quando há uma única viagem e solicitação de escolha quando há mais de uma.
+- Simplificado o fluxo de participantes para usar a viagem ativa, sem pedir a viagem novamente na tela de inclusão.
+- Novo cadastro de pessoa pode criar automaticamente o vínculo com a viagem ativa, preservando o cadastro único.
+- Criada área de importação em lote para pessoas, participantes e pagamentos, com Excel XLSX, CSV e colagem, prévia, validação, detecção de duplicidades e confirmação antes da gravação.
+- Importação aditiva: não apaga nem substitui dados existentes.
+- XLSX depende do serviço avançado Google Drive API v3; conversão temporária é enviada à lixeira após leitura.
+
+
 ## 0.1.0-dev.5 — 03/11/2026
 - Incluídos tipo, número e órgão emissor do documento como campos opcionais no cadastro rápido e completo de pessoas.
 - Criada atualização de cadastro existente para completar ou corrigir os dados posteriormente.
