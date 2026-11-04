@@ -300,15 +300,19 @@ function registerPayment(data) {
 
 function createVehicle(data) {
   validateRequired_(data, ['viagemId', 'tipo', 'identificacao', 'capacidade']);
+  const identification = clean_(data.identificacao);
+  if (!identification) throw new Error('Informe uma identificação interna para o veículo, por exemplo: Cong. Agenor de Campo — Ônibus 1. Não é necessário informar a placa oficial.');
   const capacity = Number(data.capacidade);
   if (!Number.isInteger(capacity) || capacity < 1) throw new Error('Capacidade deve ser um número inteiro positivo.');
   return withLock_(() => {
     if (!rows_('VIAGENS').some(r => r.ViagemID === data.viagemId && r.Status !== 'CANCELADA')) {
       throw new Error('Viagem não encontrada ou cancelada.');
     }
+    const duplicate = rows_('VEICULOS').some(r => r.ViagemID === data.viagemId && r.Status === 'ATIVO' && norm_(r.Identificacao) === norm_(identification));
+    if (duplicate) throw new Error('Esta identificação já está sendo usada por outro veículo desta viagem. Diferencie o número, por exemplo: Ônibus 1 e Ônibus 2.');
     const id = newId_('VC');
     sheet_('VEICULOS').appendRow([
-      id, data.viagemId, clean_(data.tipo), clean_(data.identificacao),
+      id, data.viagemId, clean_(data.tipo), identification,
       capacity, 'ATIVO', clean_(data.observacoes || ''), new Date()
     ]);
     const seats = [];
