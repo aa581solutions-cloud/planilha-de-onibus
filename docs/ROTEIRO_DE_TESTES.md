@@ -43,3 +43,35 @@
 
 ## Critérios de aprovação
 Todos os testes devem passar sem dados de produção. Falhas devem ser corrigidas e registradas antes de considerar a versão pronta.
+
+
+## Seleção da viagem ativa
+- [ ] Sem viagens, conferir orientação para criar a primeira.
+- [ ] Com uma viagem, conferir seleção automática.
+- [ ] Com duas viagens, conferir solicitação de identificação e que nenhum módulo opere sem escolha.
+- [ ] Conferir que pagamentos, veículos, assentos e relatórios acompanham a viagem ativa.
+- [ ] Cadastrar pessoa nova com viagem ativa e conferir criação do cadastro único e do vínculo em PARTICIPANTES.
+- [ ] Adicionar pessoa já cadastrada à viagem ativa sem duplicar PESSOAS.
+
+## Importação em lote
+- [ ] Importar CSV e dados colados de pessoas com cabeçalhos reconhecidos.
+- [ ] Importar XLSX após ativar Google Drive API v3 no projeto Apps Script.
+- [ ] Conferir prévia, duplicidades e linhas inválidas antes da gravação.
+- [ ] Confirmar que cancelar a prévia não grava nada.
+- [ ] Importar participantes somente para a viagem ativa e bloquear duplicidade de vínculo.
+- [ ] Importar pagamentos somente para participantes já vinculados e preservar todos os lançamentos.
+- [ ] Conferir que nenhuma importação apaga ou substitui registros existentes.
+
+
+## Programação diária de transporte — DEV.7
+- [ ] Criar Assembleia e conferir um único dia com ida pela manhã e volta à tarde.
+- [ ] Criar Congresso e conferir três dias consecutivos, cada um com ida e volta.
+- [ ] Alterar horários de ida e volta individualmente em cada dia do Congresso.
+- [ ] Criar Betel com período de vários dias e desativar dias sem transporte.
+- [ ] Criar Território isolado com dias de transporte não consecutivos.
+- [ ] Criar evento personalizado com quantidade de dias configurada.
+- [ ] Tentar salvar dia ativo sem ida ou sem volta e conferir bloqueio.
+- [ ] Tentar configurar volta anterior ou igual à ida e conferir bloqueio.
+- [ ] Conferir que cada dia de programação fica ligado à ViagemID correta.
+- [ ] Executar a preparação duas vezes e confirmar que PROGRAMACAO e novas colunas não duplicam nem apagam dados.
+- [ ] Conferir que viagens já existentes continuam listadas e acessíveis.
