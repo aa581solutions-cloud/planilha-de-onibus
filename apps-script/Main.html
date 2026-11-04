@@ -54,7 +54,7 @@
     <div class="aside-foot">AA Solutions<br>Tecnologia a serviço de todos<br><span id="version"></span></div>
   </aside>
   <main>
-    <div class="hero"><div class="hero-copy"><h1>Viajar juntos é uma bênção!</h1><p>Planejando, organizando e vivendo essa jornada juntos.</p></div><img class="hero-bus-photo" src="https://onibus.marcopolo.com.br/storage/produtos/onibus-marcopolo-8-142215202.png" alt="Ônibus rodoviário Marcopolo" loading="eager" referrerpolicy="no-referrer"></div>
+    <div class="hero"><div class="hero-copy"><h1>Viajar juntos é uma bênção!</h1><p>Planejando, organizando e vivendo essa jornada juntos.</p></div><img class="hero-bus-photo" src="https://i0.wp.com/circularavenidas.com.br/wp-content/uploads/2025/10/Marcopolo-VIDA-2-edit.jpg?fit=1134%2C756&ssl=1" alt="Ônibus rodoviário moderno azul e branco" loading="eager" referrerpolicy="no-referrer"></div>
     <div class="panel no-print" style="margin-bottom:14px"><div class="inside form-grid"><div><label for="activeTripSelect">Viagem em operação</label><select id="activeTripSelect" onchange="chooseActiveTrip(this.value)"><option value="">Aguardando identificação da viagem</option></select></div><div id="activeTripMessage" class="hint">Cadastre uma viagem para começar. Quando houver mais de uma, selecione qual deseja administrar.</div></div></div>
     <section id="home" class="screen active">
       <div class="panel"><h2>Resumo da Viagem</h2><div class="inside"><div class="summary">
@@ -287,7 +287,7 @@ function loadSeatMap(){
         return '<button type="button" class="photo-seat '+state+'" data-seat-key="'+esc(key)+'" style="left:'+xs[col]+'%;top:'+y+'%" title="'+esc(title)+'" aria-label="'+esc(title)+'" '+(state==='occupied'?'disabled':'')+' onclick="chooseSeat(\''+esc(vehicleId)+'\','+Number(seat.numero)+')">'+esc(seat.numero)+'</button>';
       }).join('');
       const occupied=seats.filter(x=>x.status==='OCUPADO').length;
-      return '<article class="vehicle-seat-card"><h3>'+esc(seats[0].veiculo||'Veículo')+'</h3><div class="vehicle-seat-meta">'+esc(seats.length)+' assentos · '+occupied+' ocupados · '+(seats.length-occupied)+' livres</div><div class="seat-photo-stage"><img src="https://onibus.marcopolo.com.br/storage/produtos/onibus-marcopolo-3-142102202.png" alt="Interior real de ônibus rodoviário, com fileiras de poltronas e corredor central" loading="lazy" referrerpolicy="no-referrer"><div class="seat-photo-shade"></div>'+markers+'</div><div class="seat-photo-caption">Selecione um assento livre diretamente na imagem</div></article>';
+      return '<article class="vehicle-seat-card"><h3>'+esc(seats[0].veiculo||'Veículo')+'</h3><div class="vehicle-seat-meta">'+esc(seats.length)+' assentos · '+occupied+' ocupados · '+(seats.length-occupied)+' livres</div><div class="seat-photo-stage"><img src="https://a88092df6f.clvaw-cdnwnd.com/58fd5d61a00ab4f3d25eaafde57263e5/200004251-bc976bc979/MP%20Entrega_paraty_600x6004.png?ph=a88092df6f" alt="Interior de ônibus rodoviário com poltronas azuis e corredor central" loading="lazy" referrerpolicy="no-referrer"><div class="seat-photo-shade"></div>'+markers+'</div><div class="seat-photo-caption">Selecione um assento livre diretamente na imagem</div></article>';
     }).join(''):'<div class="seat-empty">Nenhum veículo ou assento cadastrado para esta viagem. Cadastre um veículo para montar o mapa.</div>';
   }).withFailureHandler(e=>msg('seatStatus','Não foi possível carregar o mapa: '+e.message)).getSeatMap(trip);
 }
