@@ -140,7 +140,6 @@ function addPerson(data) {
   return withLock_(() => {
     const sh = sheet_('PESSOAS');
     const name = clean_(data.nome);
-    const phone = clean_(data.telefone || '');
     const identity = personIdentityKey_(data);
     const duplicate = rows_('PESSOAS').find(r => r.Status !== 'INATIVO' && personIdentityKey_(r) === identity);
     if (duplicate) throw new Error('Esta pessoa já está cadastrada com os mesmos dados (código ' + duplicate.PessoaID + '). Nenhum novo registro foi criado.');
@@ -203,7 +202,6 @@ function addTrip(data) {
     const tripName = clean_(data.nome);
     const tripDestination = clean_(data.destino || '');
     const tripType = clean_(data.tipoEvento);
-    const scheduleDates = activeDays.map(d => dateKey_(d.data)).sort().join('|');
     const duplicate = rows_('VIAGENS').find(r =>
       r.Status !== 'CANCELADA' && r.Status !== 'ARQUIVADA' &&
       norm_(r.Nome) === norm_(tripName) &&
@@ -419,12 +417,6 @@ function personIdentityKey_(data) {
     norm_(value('NumeroDocumento', 'numeroDocumento')),
     norm_(value('OrgaoEmissor', 'orgaoEmissor'))
   ].join('|');
-}
-
-function tripScheduleMatches_(viagemId, expectedDates) {
-  const expected = expectedDates ? expectedDates.split('|').filter(Boolean).sort() : [];
-  const actual = rows_('PROGRAMACAO').filter(r => r.ViagemID === viagemId && r.DiaAtivo === 'SIM').map(r => dateKey_(r.Data)).sort();
-  return expected.length === actual.length && expected.every((d, i) => d === actual[i]);
 }
 
 function withLock_(fn) {
