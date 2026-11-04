@@ -210,8 +210,7 @@ function addTrip(data) {
       dateKey_(r.DataIda) === dateKey_(firstDate) &&
       dateKey_(r.DataRetorno) === dateKey_(lastDate) &&
       norm_(r.Destino) === norm_(tripDestination) &&
-      norm_(r.TipoEvento) === norm_(tripType) &&
-      tripScheduleMatches_(r.ViagemID, scheduleDates)
+      norm_(r.TipoEvento) === norm_(tripType)
     );
     if (duplicate) {
       throw new Error('Esta viagem já está cadastrada (código ' + duplicate.ViagemID + '). Nenhum novo registro foi criado.');
