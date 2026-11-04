@@ -6,7 +6,7 @@
 
 const APP = Object.freeze({
   name: 'Sistema de Viagens',
-  version: '0.1.0-dev.9',
+  version: '0.1.0-dev.10',
   sheets: {
     PAINEL: [],
     PESSOAS: ['PessoaID', 'Nome', 'Telefone', 'Observacoes', 'CriadoEm', 'AtualizadoEm', 'Status', 'TipoDocumento', 'NumeroDocumento', 'OrgaoEmissor'],
@@ -140,6 +140,7 @@ function addPerson(data) {
   return withLock_(() => {
     const sh = sheet_('PESSOAS');
     const name = clean_(data.nome);
+    const phone = clean_(data.telefone || '');
     const identity = personIdentityKey_(data);
     const duplicate = rows_('PESSOAS').find(r => r.Status !== 'INATIVO' && personIdentityKey_(r) === identity);
     if (duplicate) throw new Error('Esta pessoa já está cadastrada com os mesmos dados (código ' + duplicate.PessoaID + '). Nenhum novo registro foi criado.');
@@ -183,10 +184,26 @@ function updatePerson(data) {
 }
 
 function addTrip(data) {
-  validateRequired_(data, ['nome', 'tipoEvento']);
+  validateRequired_(data, ['nome', 'tipoEvento', 'dataInicio']);
   const schedule = Array.isArray(data.programacao) ? data.programacao : [];
   if (!schedule.length) throw new Error('Inclua pelo menos um dia na programação.');
   const activeDays = schedule.filter(d => d.ativo);
+  if (norm_(data.tipoEvento) === 'congresso') {
+    if (schedule.length !== 3 || activeDays.length !== 3) {
+      throw new Error('Congresso deve ter exatamente três dias consecutivos, todos com transporte de ida e volta.');
+    }
+    const dates = activeDays.map(d => String(d.data || ''));
+    for (let i = 1; i < dates.length; i++) {
+      const previous = Date.parse(dates[i - 1] + 'T00:00:00Z');
+      const current = Date.parse(dates[i] + 'T00:00:00Z');
+      if (!Number.isFinite(previous) || !Number.isFinite(current) || current - previous !== 86400000) {
+        throw new Error('Os três dias do congresso devem ser consecutivos e estar em ordem.');
+      }
+    }
+    if (String(data.dataInicio) !== dates[0]) {
+      throw new Error('A data inicial deve corresponder ao primeiro dia da programação do congresso.');
+    }
+  }
   if (!activeDays.length) throw new Error('Selecione pelo menos um dia com transporte.');
   activeDays.forEach((d, i) => {
     validateRequired_(d, ['data', 'horaIda', 'horaVolta']);
