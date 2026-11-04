@@ -25,3 +25,7 @@ Cria as abas e cabeçalhos previstos, se ainda não existirem. Não preenche cad
 
 ## Próxima etapa
 Testar as operações em uma planilha descartável de desenvolvimento, corrigir os resultados e então concluir interface, assentos e relatórios. A planilha oficial de uso só deve ser preparada após autorização do usuário.
+
+
+## Importação de arquivos Excel
+A versão DEV.6 permite importar arquivos XLSX usando o serviço avançado Google Drive API v3. O manifesto do projeto já declara esse serviço. Se o Apps Script solicitar ativação manual, abra **Serviços** no editor do Apps Script, adicione **Drive API** e confirme a versão v3. A importação cria uma cópia temporária convertida para Planilhas Google, lê a primeira aba e envia o arquivo temporário para a lixeira. CSV e colagem direta não dependem desse serviço.
