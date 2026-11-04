@@ -142,7 +142,7 @@ function addPerson(data) {
     const name = clean_(data.nome);
     const phone = clean_(data.telefone || '');
     const identity = personIdentityKey_(data);
-    const duplicate = rows_('PESSOAS').find(r => r.Status !== 'INATIVO' && personIdentityKey_(r) === identity);
+    const duplicate = identity ? rows_('PESSOAS').find(r => r.Status !== 'INATIVO' && personIdentityKey_(r) === identity) : null;
     if (duplicate) throw new Error('Esta pessoa já está cadastrada com os mesmos dados (código ' + duplicate.PessoaID + '). Nenhum novo registro foi criado.');
     if (data.viagemId && !rows_('VIAGENS').some(r => r.ViagemID === data.viagemId && r.Status !== 'CANCELADA')) {
       throw new Error('A viagem selecionada não está disponível. Nenhum cadastro foi gravado.');
@@ -165,7 +165,7 @@ function updatePerson(data) {
     const row = findRowById_(sh, 'PessoaID', data.pessoaId);
     if (!row) throw new Error('Pessoa não encontrada.');
     const identity = personIdentityKey_(data);
-    const duplicate = rows_('PESSOAS').find(r => r.PessoaID !== data.pessoaId && r.Status !== 'INATIVO' && personIdentityKey_(r) === identity);
+    const duplicate = identity ? rows_('PESSOAS').find(r => r.PessoaID !== data.pessoaId && r.Status !== 'INATIVO' && personIdentityKey_(r) === identity) : null;
     if (duplicate) throw new Error('Outro cadastro já possui exatamente estes dados (código ' + duplicate.PessoaID + '). A atualização foi bloqueada.');
     const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getDisplayValues()[0];
     const set = (header, value) => {
@@ -427,13 +427,14 @@ function norm_(value) {
 
 function personIdentityKey_(data) {
   const value = (upper, lower) => data[upper] !== undefined ? data[upper] : data[lower];
-  return [
-    norm_(value('Nome', 'nome')),
-    norm_(value('Telefone', 'telefone')),
-    norm_(value('TipoDocumento', 'tipoDocumento')),
-    norm_(value('NumeroDocumento', 'numeroDocumento')),
-    norm_(value('OrgaoEmissor', 'orgaoEmissor'))
-  ].join('|');
+  const name = norm_(value('Nome', 'nome'));
+  const phone = norm_(value('Telefone', 'telefone'));
+  const documentType = norm_(value('TipoDocumento', 'tipoDocumento'));
+  const documentNumber = norm_(value('NumeroDocumento', 'numeroDocumento'));
+  const issuer = norm_(value('OrgaoEmissor', 'orgaoEmissor'));
+  // Nome sozinho não identifica uma pessoa de forma exclusiva; homônimos são permitidos.
+  if (!phone && !documentType && !documentNumber && !issuer) return '';
+  return [name, phone, documentType, documentNumber, issuer].join('|');
 }
 
 function withLock_(fn) {
