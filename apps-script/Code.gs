@@ -6,7 +6,7 @@
 
 const APP = Object.freeze({
   name: 'Sistema de Viagens',
-  version: '0.1.0-dev.8',
+  version: '0.1.0-dev.9',
   sheets: {
     PAINEL: [],
     PESSOAS: ['PessoaID', 'Nome', 'Telefone', 'Observacoes', 'CriadoEm', 'AtualizadoEm', 'Status', 'TipoDocumento', 'NumeroDocumento', 'OrgaoEmissor'],
@@ -128,7 +128,7 @@ function getAppSummary() {
   return {
     version: APP.version,
     people: count('PESSOAS'),
-    trips: count('VIAGENS'),
+    trips: rows_('VIAGENS').filter(r => r.Status !== 'CANCELADA' && r.Status !== 'ARQUIVADA' && r.ViagemID).length,
     participants: count('PARTICIPANTES'),
     payments: count('PAGAMENTOS'),
     vehicles: count('VEICULOS')
@@ -141,10 +141,9 @@ function addPerson(data) {
     const sh = sheet_('PESSOAS');
     const name = clean_(data.nome);
     const phone = clean_(data.telefone || '');
-    const duplicate = phone !== '' && rows_('PESSOAS').some(r =>
-      norm_(r.Nome) === norm_(name) && norm_(r.Telefone) === norm_(phone) && r.Status !== 'INATIVO'
-    );
-    if (duplicate) throw new Error('Já existe cadastro ativo com este nome e telefone.');
+    const identity = personIdentityKey_(data);
+    const duplicate = rows_('PESSOAS').find(r => r.Status !== 'INATIVO' && personIdentityKey_(r) === identity);
+    if (duplicate) throw new Error('Esta pessoa já está cadastrada com os mesmos dados (código ' + duplicate.PessoaID + '). Nenhum novo registro foi criado.');
     if (data.viagemId && !rows_('VIAGENS').some(r => r.ViagemID === data.viagemId && r.Status !== 'CANCELADA')) {
       throw new Error('A viagem selecionada não está disponível. Nenhum cadastro foi gravado.');
     }
@@ -165,6 +164,9 @@ function updatePerson(data) {
     const sh = sheet_('PESSOAS');
     const row = findRowById_(sh, 'PessoaID', data.pessoaId);
     if (!row) throw new Error('Pessoa não encontrada.');
+    const identity = personIdentityKey_(data);
+    const duplicate = rows_('PESSOAS').find(r => r.PessoaID !== data.pessoaId && r.Status !== 'INATIVO' && personIdentityKey_(r) === identity);
+    if (duplicate) throw new Error('Outro cadastro já possui exatamente estes dados (código ' + duplicate.PessoaID + '). A atualização foi bloqueada.');
     const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getDisplayValues()[0];
     const set = (header, value) => {
       const col = headers.indexOf(header) + 1;
@@ -201,13 +203,15 @@ function addTrip(data) {
     const tripName = clean_(data.nome);
     const tripDestination = clean_(data.destino || '');
     const tripType = clean_(data.tipoEvento);
+    const scheduleDates = activeDays.map(d => dateKey_(d.data)).sort().join('|');
     const duplicate = rows_('VIAGENS').find(r =>
-      r.Status !== 'CANCELADA' &&
+      r.Status !== 'CANCELADA' && r.Status !== 'ARQUIVADA' &&
       norm_(r.Nome) === norm_(tripName) &&
       dateKey_(r.DataIda) === dateKey_(firstDate) &&
       dateKey_(r.DataRetorno) === dateKey_(lastDate) &&
       norm_(r.Destino) === norm_(tripDestination) &&
-      norm_(r.TipoEvento) === norm_(tripType)
+      norm_(r.TipoEvento) === norm_(tripType) &&
+      tripScheduleMatches_(r.ViagemID, scheduleDates)
     );
     if (duplicate) {
       throw new Error('Esta viagem já está cadastrada (código ' + duplicate.ViagemID + '). Nenhum novo registro foi criado.');
@@ -266,6 +270,11 @@ function registerPayment(data) {
       r.ParticipacaoID === data.participacaoId && r.Status !== 'CANCELADO'
     );
     if (!participation) throw new Error('Participação não encontrada ou cancelada.');
+    const paymentKey = [data.participacaoId, importDateKey_(data.data), amount, norm_(data.forma || ''), norm_(data.referencia || '')].join('|');
+    const duplicate = rows_('PAGAMENTOS').some(r =>
+      [r.ParticipacaoID, importDateKey_(r.Data), Number(r.Valor || 0), norm_(r.Forma || ''), norm_(r.Referencia || '')].join('|') === paymentKey
+    );
+    if (duplicate) throw new Error('Este pagamento com os mesmos dados já foi registrado. Nenhum lançamento duplicado foi criado.');
     const id = newId_('PG');
     sheet_('PAGAMENTOS').appendRow([
       id, data.participacaoId, data.data, amount, clean_(data.forma || ''),
@@ -402,6 +411,23 @@ function norm_(value) {
   return clean_(value).toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
+function personIdentityKey_(data) {
+  const value = (upper, lower) => data[upper] !== undefined ? data[upper] : data[lower];
+  return [
+    norm_(value('Nome', 'nome')),
+    norm_(value('Telefone', 'telefone')),
+    norm_(value('TipoDocumento', 'tipoDocumento')),
+    norm_(value('NumeroDocumento', 'numeroDocumento')),
+    norm_(value('OrgaoEmissor', 'orgaoEmissor'))
+  ].join('|');
+}
+
+function tripScheduleMatches_(viagemId, expectedDates) {
+  const expected = expectedDates ? expectedDates.split('|').filter(Boolean).sort() : [];
+  const actual = rows_('PROGRAMACAO').filter(r => r.ViagemID === viagemId && r.DiaAtivo === 'SIM').map(r => dateKey_(r.Data)).sort();
+  return expected.length === actual.length && expected.every((d, i) => d === actual[i]);
+}
+
 function withLock_(fn) {
   const lock = LockService.getDocumentLock();
   lock.waitLock(30000);
@@ -414,8 +440,60 @@ function listPeople() {
     .map(r => ({ id: r.PessoaID, nome: r.Nome, telefone: r.Telefone, observacoes: r.Observacoes || '', tipoDocumento: r.TipoDocumento || '', numeroDocumento: r.NumeroDocumento || '', orgaoEmissor: r.OrgaoEmissor || '' }));
 }
 
+function archiveTrip(viagemId) {
+  validateRequired_({viagemId: viagemId}, ['viagemId']);
+  return withLock_(() => {
+    const sh = sheet_('VIAGENS'), row = findRowById_(sh, 'ViagemID', viagemId);
+    if (!row) throw new Error('Viagem não encontrada.');
+    const status = String(sh.getRange(row, 6).getValue() || '');
+    if (status === 'CANCELADA') throw new Error('Uma viagem cancelada não pode ser arquivada.');
+    if (status === 'ARQUIVADA') return {ok:true, jaArquivada:true};
+    sh.getRange(row, 6).setValue('ARQUIVADA');
+    return {ok:true, arquivada:true};
+  });
+}
+
+function restoreTrip(viagemId) {
+  validateRequired_({viagemId: viagemId}, ['viagemId']);
+  return withLock_(() => {
+    const sh = sheet_('VIAGENS'), row = findRowById_(sh, 'ViagemID', viagemId);
+    if (!row) throw new Error('Viagem não encontrada.');
+    if (String(sh.getRange(row, 6).getValue() || '') !== 'ARQUIVADA') throw new Error('Esta viagem não está arquivada.');
+    sh.getRange(row, 6).setValue('PLANEJADA');
+    return {ok:true, restaurada:true};
+  });
+}
+
+function deleteTrip(viagemId) {
+  validateRequired_({viagemId: viagemId}, ['viagemId']);
+  return withLock_(() => {
+    const trip = rows_('VIAGENS').find(r => r.ViagemID === viagemId);
+    if (!trip) throw new Error('Viagem não encontrada.');
+    const participants = rows_('PARTICIPANTES').filter(r => r.ViagemID === viagemId);
+    const vehicles = rows_('VEICULOS').filter(r => r.ViagemID === viagemId);
+    const seats = rows_('ASSENTOS').filter(r => r.ViagemID === viagemId);
+    if (participants.length || vehicles.length || seats.length) {
+      throw new Error('Esta viagem possui participantes, pagamentos ou veículos/assentos vinculados. Para preservar o histórico, use Arquivar em vez de Excluir.');
+    }
+    const scheduleSheet = sheet_('PROGRAMACAO');
+    rows_('PROGRAMACAO').filter(r => r.ViagemID === viagemId).forEach(r => {
+      const row = findRowById_(scheduleSheet, 'ProgramacaoID', r.ProgramacaoID);
+      if (row) scheduleSheet.deleteRow(row);
+    });
+    const tripSheet = sheet_('VIAGENS'), tripRow = findRowById_(tripSheet, 'ViagemID', viagemId);
+    if (tripRow) tripSheet.deleteRow(tripRow);
+    return {ok:true, excluida:true};
+  });
+}
+
+function listArchivedTrips() {
+  return rows_('VIAGENS').filter(r => r.Status === 'ARQUIVADA' && r.ViagemID)
+    .map(r => ({id:clean_(r.ViagemID),nome:clean_(r.Nome),dataIda:dateKey_(r.DataIda),dataRetorno:dateKey_(r.DataRetorno),destino:clean_(r.Destino),tipoEvento:clean_(r.TipoEvento||'')}))
+    .sort((a,b) => a.dataIda.localeCompare(b.dataIda) || a.nome.localeCompare(b.nome));
+}
+
 function listTrips() {
-  return rows_('VIAGENS').filter(r => r.Status !== 'CANCELADA' && r.ViagemID)
+  return rows_('VIAGENS').filter(r => r.Status !== 'CANCELADA' && r.Status !== 'ARQUIVADA' && r.ViagemID)
     .map(r => ({
       id: clean_(r.ViagemID),
       nome: clean_(r.Nome),
@@ -671,7 +749,9 @@ function applyBatchImport(tipo, viagemId, matriz) {
 
 /** Converte arquivo XLSX temporariamente para Planilhas e devolve a primeira aba como matriz. Requer serviço avançado Drive API v3. */
 function readXlsxImport(base64, fileName) {
-  if (typeof Drive === 'undefined' || !Drive.Files) throw new Error('Ative o serviço avançado Google Drive API no Apps Script para importar XLSX.');
+  if (typeof Drive === 'undefined' || !Drive.Files) {
+    throw new Error('A leitura de Excel ainda não está habilitada. No Apps Script, abra Serviços (+), adicione Drive API (versão v3) e salve. Se continuar, habilite Google Drive API no projeto Google Cloud associado. CSV e colagem continuam disponíveis.');
+  }
   const bytes = Utilities.base64Decode(base64);
   const blob = Utilities.newBlob(bytes, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', fileName || 'importacao.xlsx');
   let tempId = '';
