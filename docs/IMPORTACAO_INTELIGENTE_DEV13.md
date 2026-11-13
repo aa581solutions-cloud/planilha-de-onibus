@@ -22,7 +22,7 @@ Permitir importar uma planilha Excel ou CSV como fonte única de pessoas, inscri
 - Observações.
 - Número original da inscrição (`Nº`), armazenado no vínculo da pessoa com a viagem quando disponível.
 
-Se um campo não existir ou estiver vazio, deixar o dado correspondente em branco. Não inventar datas, valores ou formas de pagamento. Linha sem Nome não é importada.
+Se um campo não existir ou estiver vazio, deixar o dado correspondente em branco. Não inventar datas, valores ou formas de pagamento. Se um campo opcional tiver conteúdo inválido, deixar somente aquele campo em branco e mostrar um aviso; os outros dados da pessoa continuam importáveis. Linha sem Nome não é importada.
 
 ## Identificação e duplicidades
 1. Documento coincidente é o primeiro identificador forte.
