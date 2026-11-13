@@ -233,3 +233,24 @@ function readXlsxImport(base64, fileName) {
     if(tempId) Drive.Files.update({trashed:true},tempId);
   }
 }
+
+
+/** Testes puros da importação inteligente; não leem nem alteram a planilha. */
+function runSmartImportSelfTests() {
+  const results=[];
+  const check=(name,fn)=>{
+    try { if(!fn()) throw new Error('Resultado inesperado'); results.push({teste:name,status:'OK'}); }
+    catch(e) { results.push({teste:name,status:'FALHOU',erro:e.message}); }
+  };
+  check('Cabeçalho apenas com Nome',()=>smartFindHeader_([['Nome'],['Maria']]).columns.nome===0);
+  check('Cabeçalhos com variações e acentos',()=>{
+    const h=smartFindHeader_([['Nome da Pessoa','Data de Pagamento','Valor da Passagem','Valor Pago','Forma de Pagamento','Saldo','Documento','Telefone','Observações','Nº']]);
+    return h && h.columns.nome===0 && h.columns.dataPagamento===1 && h.columns.valorPassagem===2 &&
+      h.columns.valorPago===3 && h.columns.formaPagamento===4 && h.columns.saldo===5 &&
+      h.columns.documento===6 && h.columns.telefone===7 && h.columns.observacoes===8 && h.columns.numeroInscricao===9;
+  });
+  check('Valor monetário brasileiro',()=>Math.abs(smartMoney_('R$ 1.234,50')-1234.5)<0.001);
+  check('Data brasileira',()=>smartDate_('13/11/2026')==='2026-11-13');
+  check('Campo opcional vazio',()=>smartMoney_('')===null && smartDate_('')==='');
+  return {total:results.length,aprovados:results.filter(x=>x.status==='OK').length,results:results};
+}
