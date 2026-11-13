@@ -15,6 +15,7 @@ Interpretar diferentes planilhas anexadas, identificar automaticamente os dados 
 - Telefone.
 - Documento/CPF/RG.
 - Tipo de documento.
+- Órgão emissor do documento.
 - Data de pagamento.
 - Valor da passagem (valor previsto).
 - Valor pago.
