@@ -20,6 +20,7 @@
 - Ações disponíveis: mesclar com cadastro escolhido, editar os campos antes da gravação, salvar como novo cadastro ou apagar a linha somente da importação atual.
 - Pessoas já vinculadas à viagem ativa são encaminhadas para revisão.
 - Ações destrutivas sobre cadastros existentes não são realizadas pela opção “apagar da importação”.
+- A importação em lote legada é bloqueada quando detecta duplicidades e direciona o usuário à Importação Inteligente, evitando descarte silencioso.
 - O backend bloqueia a confirmação quando uma linha em revisão não possui decisão.
 
 ## Limites desta validação
@@ -30,7 +31,7 @@ Os testes de sintaxe e os seis testes puros foram executados em ambiente isolado
 - Testar as ações de mesclagem, edição, novo cadastro e remoção da linha em uma cópia descartável.
 - Testar gravação e reimportação em cópia descartável da planilha.
 - Conferir totais financeiros e relatórios com dados de teste.
-- Validar o fluxo de importação em lote legado, separadamente.
+- Testar a mensagem de bloqueio da importação em lote legada quando houver duplicidades.
 
 ## Segurança de implantação
 
