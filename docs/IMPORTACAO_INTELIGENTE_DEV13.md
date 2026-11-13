@@ -1,7 +1,7 @@
 # Especificação — Importação inteligente DEV.13
 
 ## Objetivo
-Permitir importar uma planilha Excel ou CSV como fonte única de pessoas, inscrições e informações financeiras, sem depender do nome da aba nem de um modelo fixo de colunas.
+Interpretar diferentes planilhas anexadas, identificar automaticamente os dados disponíveis e importar pessoas, inscrições e informações financeiras sem depender de um modelo fixo de arquivo ou nome de aba.
 
 ## Identificação da fonte
 - No XLSX, examinar as abas e selecionar a aba com melhor correspondência de cabeçalhos.
@@ -11,6 +11,7 @@ Permitir importar uma planilha Excel ou CSV como fonte única de pessoas, inscri
 - O campo Nome é o único obrigatório.
 
 ## Campos opcionais
+- Número original da inscrição.
 - Telefone.
 - Documento/CPF/RG.
 - Tipo de documento.
@@ -20,17 +21,21 @@ Permitir importar uma planilha Excel ou CSV como fonte única de pessoas, inscri
 - Forma de pagamento.
 - Saldo.
 - Observações.
-- Número original da inscrição (`Nº`), armazenado no vínculo da pessoa com a viagem quando disponível.
 
-Se um campo não existir ou estiver vazio, deixar o dado correspondente em branco. Não inventar datas, valores ou formas de pagamento. Se um campo opcional tiver conteúdo inválido, deixar somente aquele campo em branco e mostrar um aviso; os outros dados da pessoa continuam importáveis. Linha sem Nome não é importada.
+Se um campo não existir ou estiver vazio, deixar o dado correspondente em branco. Não inventar datas, valores ou formas de pagamento. Se um campo opcional tiver conteúdo inválido, deixar somente aquele campo em branco e mostrar um aviso; os outros dados continuam importáveis. Linha sem Nome não é importada.
 
-## Identificação e duplicidades
-1. Documento coincidente é o primeiro identificador forte.
-2. Telefone coincidente é o segundo identificador forte.
-3. Nome igual ou semelhante, inclusive abreviações como “Adam” e “Adam Alves”, exige conferência manual.
-4. Não mesclar nem descartar pessoas apenas pela semelhança do nome.
-5. A prévia oferece decisão entre associar a um cadastro existente ou cadastrar uma nova pessoa.
-6. A mesma pessoa não deve receber uma segunda inscrição na mesma viagem.
+## Identificação e revisão de possíveis duplicidades
+1. Documento e telefone são identificadores fortes, mas conflitos entre eles exigem revisão.
+2. Nome igual ou semelhante, inclusive abreviações, exige conferência manual.
+3. Registros repetidos dentro do arquivo também devem ser sinalizados.
+4. Pessoa já vinculada à viagem ativa deve ser encaminhada para revisão antes de alterar ou acrescentar dados.
+5. Nenhuma possível duplicidade pode ser descartada ou ignorada automaticamente.
+6. A revisão oferece as ações:
+   - **Mesclar:** associar ao cadastro existente escolhido; completar campos vazios e preservar os dados já existentes, salvo campos que o usuário tenha editado expressamente.
+   - **Editar:** corrigir os dados apresentados antes de decidir.
+   - **Salvar como novo:** manter um cadastro separado, inclusive quando o nome for semelhante.
+   - **Apagar da importação:** retirar somente a linha recebida da operação atual. Não apagar automaticamente cadastros ou histórico já salvos.
+7. A confirmação deve ser bloqueada enquanto houver revisão sem decisão.
 
 ## Integração financeira
 - Valor da passagem alimenta ValorPrevisto quando informado.
@@ -38,12 +43,12 @@ Se um campo não existir ou estiver vazio, deixar o dado correspondente em branc
 - Data de pagamento é opcional; se ausente, o pagamento é preservado com data vazia.
 - Forma de pagamento e observações são copiadas quando disponíveis.
 - Saldo da origem é comparado com o saldo calculado; divergências são sinalizadas, não corrigidas silenciosamente.
-- A reimportação deve evitar repetir lançamentos financeiros equivalentes.
+- Reimportações não devem duplicar lançamentos financeiros equivalentes sem revisão.
 
 ## Confirmação e segurança
 - Prévia antes de gravar.
 - Mostrar aba selecionada, abas examinadas, campos encontrados/ausentes, linhas sem nome, possíveis duplicidades e comparação financeira.
-- Exigir decisão para todos os casos ambíguos.
+- Exigir decisão para todos os casos em revisão.
 - Não modificar o arquivo de origem.
 - Desenvolvimento ocorre na branch DEV.13; DEV.12 e produção permanecem intocadas.
 
@@ -58,9 +63,11 @@ Se um campo não existir ou estiver vazio, deixar o dado correspondente em branc
 8. Aba com nome arbitrário.
 9. XLSX com várias abas e apenas uma com cabeçalhos correspondentes.
 10. Linha sem nome.
-11. “Adam” e “Adam Alves” com revisão manual.
+11. Nome igual ou semelhante com revisão manual.
 12. Documento ou telefone coincidente.
-13. Pessoa já inscrita na viagem.
-14. Reimportação sem duplicar pagamentos.
-16. Preservação do número de inscrição original (`Nº`) na participação.
-15. Saldo da origem diferente do saldo calculado.
+13. Documento e telefone apontando para pessoas diferentes.
+14. Pessoa já inscrita na viagem.
+15. Repetição dentro do próprio arquivo.
+16. Reimportação sem duplicar pagamentos.
+17. Preservação do número de inscrição na participação.
+18. Saldo da origem diferente do saldo calculado.
