@@ -52,9 +52,17 @@ function smartDate_(value) {
   if (value instanceof Date && !isNaN(value.getTime())) return Utilities.formatDate(value,Session.getScriptTimeZone(),'yyyy-MM-dd');
   const s = clean_(value);
   let m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (m) return m[3]+'-'+m[2]+'-'+m[1];
+  if (m) {
+    const d=new Date(Number(m[3]),Number(m[2])-1,Number(m[1]));
+    if(d.getFullYear()!==Number(m[3]) || d.getMonth()!==Number(m[2])-1 || d.getDate()!==Number(m[1])) throw new Error('Data de pagamento inválida: '+s);
+    return m[3]+'-'+m[2]+'-'+m[1];
+  }
   m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (m) return m[1]+'-'+m[2]+'-'+m[3];
+  if (m) {
+    const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+    if(d.getFullYear()!==Number(m[1]) || d.getMonth()!==Number(m[2])-1 || d.getDate()!==Number(m[3])) throw new Error('Data de pagamento inválida: '+s);
+    return m[1]+'-'+m[2]+'-'+m[3];
+  }
   const d = new Date(s);
   if (isNaN(d.getTime())) throw new Error('Data de pagamento inválida: ' + s);
   return Utilities.formatDate(d,Session.getScriptTimeZone(),'yyyy-MM-dd');
@@ -113,6 +121,12 @@ function smartAnalyzeSheets_(sheets) {
     let status='NOVO',motivo='Nenhum cadastro correspondente encontrado.';
     if (exactDoc.length===1 && exactPhone.length===1 && exactDoc[0].PessoaID!==exactPhone[0].PessoaID) {
       candidates=[exactDoc[0],exactPhone[0]];status='REVISAR';motivo='Documento e telefone apontam para cadastros diferentes; confira antes de associar.';
+    }
+    else if (exactDoc.length===1 && phone && smartDigits_(exactDoc[0].Telefone) && smartDigits_(exactDoc[0].Telefone)!==phone) {
+      candidates=exactDoc;status='REVISAR';motivo='Documento coincide, mas o telefone diverge do cadastro existente.';
+    }
+    else if (exactPhone.length===1 && doc && smartDigits_(exactPhone[0].NumeroDocumento) && smartDigits_(exactPhone[0].NumeroDocumento)!==doc) {
+      candidates=exactPhone;status='REVISAR';motivo='Telefone coincide, mas o documento diverge do cadastro existente.';
     }
     else if (exactDoc.length===1) {candidates=exactDoc;status='ASSOCIAR';motivo='Documento coincide com um cadastro existente.';}
     else if (exactDoc.length>1) {candidates=exactDoc;status='REVISAR';motivo='Documento aparece em mais de um cadastro.';}
