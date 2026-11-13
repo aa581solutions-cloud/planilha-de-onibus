@@ -19,6 +19,8 @@
 - A interface da importação inteligente agora solicita uma decisão por linha em revisão.
 - Ações disponíveis: mesclar com cadastro escolhido, editar os campos antes da gravação, salvar como novo cadastro ou apagar a linha somente da importação atual.
 - Pessoas já vinculadas à viagem ativa são encaminhadas para revisão.
+- Repetições no próprio arquivo continuam em revisão e mantêm candidatos encontrados nos cadastros existentes.
+- Pagamentos com mesma participação, data, valor e forma são sinalizados para revisão; a interface permite confirmar explicitamente outro lançamento igual.
 - Ações destrutivas sobre cadastros existentes não são realizadas pela opção “apagar da importação”.
 - A importação em lote legada é bloqueada quando detecta duplicidades e direciona o usuário à Importação Inteligente, evitando descarte silencioso.
 - O backend bloqueia a confirmação quando uma linha em revisão não possui decisão.
@@ -29,6 +31,7 @@ Os testes de sintaxe e os seis testes puros foram executados em ambiente isolado
 - Executar a função de autoverificação no Apps Script vinculado a uma cópia de teste.
 - Testar conversão real de XLSX com várias abas via Drive API v3.
 - Testar as ações de mesclagem, edição, novo cadastro e remoção da linha em uma cópia descartável.
+- Testar confirmação explícita de pagamentos com assinatura igual e prevenção de reimportação acidental.
 - Testar gravação e reimportação em cópia descartável da planilha.
 - Conferir totais financeiros e relatórios com dados de teste.
 - Testar a mensagem de bloqueio da importação em lote legada quando houver duplicidades.
