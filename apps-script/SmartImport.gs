@@ -332,10 +332,10 @@ function runSmartImportSelfTests() {
   };
   check('Cabeçalho apenas com Nome',()=>smartFindHeader_([['Nome'],['Maria']]).columns.nome===0);
   check('Cabeçalhos com variações e acentos',()=>{
-    const h=smartFindHeader_([['Nome da Pessoa','Data de Pagamento','Valor da Passagem','Valor Pago','Forma de Pagamento','Saldo','Documento','Telefone','Observações','Nº']]);
+    const h=smartFindHeader_([['Nome da Pessoa','Data de Pagamento','Valor da Passagem','Valor Pago','Forma de Pagamento','Saldo','Documento','Telefone','Observações','Nº','Órgão Emissor']]);
     return h && h.columns.nome===0 && h.columns.dataPagamento===1 && h.columns.valorPassagem===2 &&
       h.columns.valorPago===3 && h.columns.formaPagamento===4 && h.columns.saldo===5 &&
-      h.columns.documento===6 && h.columns.telefone===7 && h.columns.observacoes===8 && h.columns.numeroInscricao===9;
+      h.columns.documento===6 && h.columns.telefone===7 && h.columns.observacoes===8 && h.columns.numeroInscricao===9 && h.columns.orgaoEmissor===10;
   });
   check('Cabeçalhos comuns de passagem e pagamento',()=>{
     const h=smartFindHeader_([['Nº','Nome','Data pagamento','Passagem','Valor pago','Pagamento','Saldo/Troco']]);
