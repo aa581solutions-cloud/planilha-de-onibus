@@ -1,4 +1,20 @@
-# Changelog — Sistema de Viagens
+# Changelog
+
+## 0.1.0-dev.13 — Importação inteligente e revisão de integridade
+
+- Adicionada importação inteligente de Excel/CSV com identificação da aba pelo conteúdo dos cabeçalhos, sem depender do nome da aba.
+- Somente o campo Nome é obrigatório; demais campos são opcionais e permanecem vazios quando ausentes.
+- XLSX agora é lido em todas as abas e a melhor correspondência de cabeçalhos é selecionada automaticamente.
+- Adicionados mapeamentos flexíveis para nome, telefone, documento, data de pagamento, valor da passagem, valor pago, forma de pagamento, saldo e observações.
+- Adicionada revisão de nomes iguais/semelhantes; documento e telefone são usados como identificadores fortes. Casos ambíguos exigem decisão humana.
+- A importação inteligente cria/associa pessoas, vincula à viagem ativa, registra o valor previsto quando disponível e lança pagamentos somente quando há valor pago.
+- Pagamento sem data é preservado com data em branco; campos financeiros ausentes não são inventados.
+- Prévia compara saldo de origem com saldo calculado e aponta divergências.
+- Reimportações não devem duplicar inscrições e pagamentos equivalentes.
+- Mantida a importação antiga como opção legada para compatibilidade.
+- A versão DEV.12 permanece preservada como base anterior.
+
+— Sistema de Viagens
 
 ## 0.1.0-dev.7 — 03/11/2026
 - Criada programação diária de transporte vinculada à viagem, com ida e volta independentes por dia.
