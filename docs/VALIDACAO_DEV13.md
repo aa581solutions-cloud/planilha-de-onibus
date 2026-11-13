@@ -32,6 +32,13 @@
 - Ao mesclar, campos editados expressamente podem atualizar tipo e órgão emissor; ao criar pessoa, o órgão emissor é gravado no campo próprio.
 - O teste de reconhecimento de cabeçalho foi ampliado para incluir `Órgão Emissor`; essa ampliação ainda precisa ser executada no Apps Script de teste.
 
+## Revalidação isolada após a correção do órgão emissor
+
+- Sintaxe de `Code.gs`, `SmartImport.gs` e do script de `Main.html`: aprovada.
+- Autotestes puros: 6 de 6 aprovados.
+- Simulação de leitura de uma linha com `Nome`, `Tipo de Documento`, `Documento` e `Órgão Emissor`: campo `SSP/SP` reconhecido e preservado na prévia.
+- Esta simulação não substitui a execução no Apps Script nem a gravação em uma cópia descartável do Google Planilhas.
+
 ## Limites desta validação
 
 Os testes de sintaxe e os seis testes puros foram executados em ambiente isolado. Eles não representam teste de ponta a ponta dentro de uma planilha Google real. Permanecem pendentes:
