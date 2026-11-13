@@ -270,9 +270,9 @@ function applySmartImport(viagemId, sheets, decisions) {
       } else {
         const row=findRowById_(participantSheet,'ParticipacaoID',part.ParticipacaoID);
         const headers=participantSheet.getRange(1,1,1,participantSheet.getLastColumn()).getDisplayValues()[0];
-        if(line.valorPassagemNum!=null && Number(part.ValorPrevisto||0)===0) participantSheet.getRange(row,7).setValue(line.valorPassagemNum);
+        if(line.valorPassagemNum!=null && (Number(part.ValorPrevisto||0)===0 || Object.prototype.hasOwnProperty.call(edits,'valorPassagem'))) participantSheet.getRange(row,7).setValue(line.valorPassagemNum);
         const numCol=headers.indexOf('NumeroInscricao')+1;
-        if(numCol>0 && line.numeroInscricao && !clean_(participantSheet.getRange(row,numCol).getValue())) participantSheet.getRange(row,numCol).setValue(line.numeroInscricao);
+        if(numCol>0 && line.numeroInscricao && (!clean_(participantSheet.getRange(row,numCol).getValue()) || Object.prototype.hasOwnProperty.call(edits,'numeroInscricao'))) participantSheet.getRange(row,numCol).setValue(line.numeroInscricao);
       }
       if(line.valorPagoNum!=null && line.valorPagoNum>0) {
         const date=line.dataPagamentoValue ? importDateValue_(line.dataPagamentoValue) : '';
