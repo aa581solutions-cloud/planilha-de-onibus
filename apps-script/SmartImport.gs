@@ -144,18 +144,22 @@ function smartAnalyzeSheets_(sheets) {
       });
       if (candidates.length) {status='REVISAR';motivo='Nome igual ou semelhante; confirme se é a mesma pessoa ou um homônimo.';}
     }
-    let fare=null, paid=null, date='';
-    try { fare=smartMoney_(row.valorPassagem); paid=smartMoney_(row.valorPago); if(row.dataPagamento) date=smartDate_(row.dataPagamento); row.saldoOrigemNum=row.saldo===''?null:smartMoney_(row.saldo); }
-    catch(e) { status='ERRO'; motivo=e.message; }
-    if (status!=='ERRO') {
-      row.valorPassagemNum=fare;
-      row.valorPagoNum=paid;
-      row.dataPagamentoValue=date;
-      row.saldoCalculado=fare==null?null:Math.max(0,fare-(paid||0));
-      row.divergenciaSaldo=row.saldoOrigemNum!=null && row.saldoCalculado!=null && Math.abs(row.saldoOrigemNum-row.saldoCalculado)>0.01;
-      row.candidatos=candidates.map(p=>({id:p.PessoaID,nome:p.Nome,telefone:p.Telefone||'',documento:p.NumeroDocumento||''}));
-      row.status=status;row.motivo=motivo;
-    }
+    let fare=null, paid=null, date='', sourceBalance=null;
+    const warnings=[];
+    try { fare=smartMoney_(row.valorPassagem); } catch(e) { warnings.push('Valor da passagem não copiado: '+e.message); }
+    try { paid=smartMoney_(row.valorPago); } catch(e) { warnings.push('Valor pago não copiado: '+e.message); }
+    try { if(row.dataPagamento) date=smartDate_(row.dataPagamento); } catch(e) { warnings.push('Data de pagamento não copiada: '+e.message); }
+    try { sourceBalance=row.saldo===''?null:smartMoney_(row.saldo); } catch(e) { warnings.push('Saldo de origem não copiado: '+e.message); }
+    row.valorPassagemNum=fare;
+    row.valorPagoNum=paid;
+    row.dataPagamentoValue=date;
+    row.saldoOrigemNum=sourceBalance;
+    row.saldoCalculado=fare==null?null:Math.max(0,fare-(paid||0));
+    row.divergenciaSaldo=sourceBalance!=null && row.saldoCalculado!=null && Math.abs(sourceBalance-row.saldoCalculado)>0.01;
+    row.avisos=warnings;
+    row.candidatos=candidates.map(p=>({id:p.PessoaID,nome:p.Nome,telefone:p.Telefone||'',documento:p.NumeroDocumento||''}));
+    row.status=status;
+    row.motivo=[motivo].concat(warnings).filter(Boolean).join(' | ');
     output.push(row);
   }
   return {abaEscolhida:chosen.sheetName,abasAnalisadas:sheets.map(s=>s.name),campos:Object.keys(col).filter(k=>col[k]>=0),camposAusentes:Object.keys(col).filter(k=>col[k]<0),total:output.length,novos:output.filter(x=>x.status==='NOVO').length,revisar:output.filter(x=>x.status==='REVISAR').length,associar:output.filter(x=>x.status==='ASSOCIAR').length,erros:output.filter(x=>x.status==='ERRO').length,linhas:output};
