@@ -175,7 +175,7 @@ function previewSmartImport(viagemId, sheets) {
   result.linhas.forEach(line=>{
     if(line.status==='ERRO') return;
     const existing=rows_('PARTICIPANTES').find(p=>p.ViagemID===viagemId && p.Status!=='CANCELADO' && line.candidatos.some(c=>c.id===p.PessoaID));
-    if(line.status==='ASSOCIAR' && existing){line.jaInscrito=true;line.motivo='Pessoa já vinculada à viagem; os dados financeiros novos ainda serão conferidos.';}
+    if(line.status==='ASSOCIAR' && existing){line.jaInscrito=true;line.status='REVISAR';line.motivo='Pessoa já vinculada à viagem; revise se os dados e pagamentos devem ser mesclados ou mantidos separados.';}
     if(line.status==='NOVO'){
       const existingName=rows_('PESSOAS').filter(p=>p.Status!=='INATIVO' && norm_(p.Nome)===norm_(line.nome));
       if(existingName.length){line.status='REVISAR';line.motivo='Já existe pessoa com este nome; confirme se é a mesma pessoa.';line.candidatos=existingName.map(p=>({id:p.PessoaID,nome:p.Nome,telefone:p.Telefone||'',documento:p.NumeroDocumento||''}));}
@@ -218,7 +218,7 @@ function applySmartImport(viagemId, sheets, decisions) {
       if(!line.nome) throw new Error('A linha '+line.sourceRow+' ficou sem Nome após a edição.');
       let person=null;
       if(action==='merge') {
-        const personId=decision ? decision.personId : (typeof rawDecision==='string' ? rawDecision : '');
+        const personId=decision ? decision.personId : (typeof rawDecision==='string' ? rawDecision : (line.status==='ASSOCIAR' && line.candidatos.length ? line.candidatos[0].id : ''));
         if(!personId) throw new Error('Escolha o cadastro que receberá a mesclagem na linha '+line.sourceRow+'.');
         person=rows_('PESSOAS').find(p=>p.PessoaID===personId);
         if(!person || (line.candidatos.length && !line.candidatos.some(c=>c.id===personId))) throw new Error('O cadastro escolhido não corresponde aos candidatos da linha '+line.sourceRow+'. Gere uma nova prévia.');
