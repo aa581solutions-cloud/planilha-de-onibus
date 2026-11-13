@@ -279,6 +279,11 @@ function runSmartImportSelfTests() {
       h.columns.valorPago===3 && h.columns.formaPagamento===4 && h.columns.saldo===5 &&
       h.columns.documento===6 && h.columns.telefone===7 && h.columns.observacoes===8 && h.columns.numeroInscricao===9;
   });
+  check('Cabeçalhos comuns de passagem e pagamento',()=>{
+    const h=smartFindHeader_([['Nº','Nome','Data pagamento','Passagem','Valor pago','Pagamento','Saldo/Troco']]);
+    return h && h.columns.numeroInscricao===0 && h.columns.nome===1 && h.columns.dataPagamento===2 &&
+      h.columns.valorPassagem===3 && h.columns.valorPago===4 && h.columns.formaPagamento===5 && h.columns.saldo===6;
+  });
   check('Valor monetário brasileiro',()=>Math.abs(smartMoney_('R$ 1.234,50')-1234.5)<0.001);
   check('Data brasileira',()=>smartDate_('13/11/2026')==='2026-11-13');
   check('Campo opcional vazio',()=>smartMoney_('')===null && smartDate_('')==='');
