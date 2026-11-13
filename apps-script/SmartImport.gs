@@ -124,7 +124,10 @@ function smartAnalyzeSheets_(sheets) {
     const exactPhone=phone?people.filter(p=>smartDigits_(p.Telefone)===phone):[];
     let candidates=[];
     let status='NOVO',motivo='Nenhum cadastro correspondente encontrado.';
-    if (exactDoc.length===1 && exactPhone.length===1 && exactDoc[0].PessoaID!==exactPhone[0].PessoaID) {
+    if (exactDoc.length>1 || exactPhone.length>1) {
+      candidates=exactDoc.concat(exactPhone).filter((p,i,all)=>all.findIndex(x=>x.PessoaID===p.PessoaID)===i);status='REVISAR';motivo='Documento ou telefone aparece em mais de um cadastro; confira as correspondências.';
+    }
+    else if (exactDoc.length===1 && exactPhone.length===1 && exactDoc[0].PessoaID!==exactPhone[0].PessoaID) {
       candidates=[exactDoc[0],exactPhone[0]];status='REVISAR';motivo='Documento e telefone apontam para cadastros diferentes; confira antes de associar.';
     }
     else if (exactDoc.length===1 && phone && smartDigits_(exactDoc[0].Telefone) && smartDigits_(exactDoc[0].Telefone)!==phone) {
