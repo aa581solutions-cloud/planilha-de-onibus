@@ -113,13 +113,11 @@ function smartAnalyzeSheets_(sheets) {
       continue;
     }
     const doc=smartDigits_(row.documento), phone=smartDigits_(row.telefone), name=norm_(row.nome);
-    const sourceKeys=[];
+    const sourceKeys=['name:'+name];
     if(doc) sourceKeys.push('doc:'+doc);
     if(phone) sourceKeys.push('phone:'+phone);
-    if(!doc && !phone) sourceKeys.push('name:'+name);
     const repeatedInFile=sourceKeys.some(key=>seenSourceKeys.has(key));
     sourceKeys.forEach(key=>seenSourceKeys.add(key));
-    if(repeatedInFile) { output.push({...row,status:'REVISAR',motivo:'Documento, telefone ou nome sem identificadores repetido no próprio arquivo; confira se é a mesma pessoa.',candidatos:[]}); continue; }
     const exactDoc=doc?people.filter(p=>smartDigits_(p.NumeroDocumento)===doc):[];
     const exactPhone=phone?people.filter(p=>smartDigits_(p.Telefone)===phone):[];
     let candidates=[];
@@ -146,6 +144,10 @@ function smartAnalyzeSheets_(sheets) {
         return existing===name || existing.startsWith(name+' ') || name.startsWith(existing+' ') || (name.split(' ').some(t=>t.length>=4 && existing.split(' ').includes(t)) && Math.min(name.length,existing.length)/Math.max(name.length,existing.length)>.55);
       });
       if (candidates.length) {status='REVISAR';motivo='Nome igual ou semelhante; confirme se é a mesma pessoa ou um homônimo.';}
+    }
+    if(repeatedInFile) {
+      status='REVISAR';
+      motivo='Nome, documento ou telefone repetido no próprio arquivo; confira se é a mesma pessoa ou registros distintos.';
     }
     let fare=null, paid=null, date='', sourceBalance=null;
     const warnings=[];
