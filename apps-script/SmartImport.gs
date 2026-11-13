@@ -15,7 +15,7 @@ function smartAliases_() {
     tipoDocumento: ['tipodocumento','tipode documento','tipodedocumento'],
     dataPagamento: ['datapagamento','datadepagamento','data','datadopagamento','pagamentoem','datapagto','datapagamento'],
     valorPassagem: ['valorpassagem','valordapassagem','passagem','valorprevisto','valortotal','valorviagem'],
-    valorPago: ['valorpago','totalpago','pagamento','valordopagamento','valorrecebido','pago'],
+    valorPago: ['valorpago','totalpago','valordopagamento','valorrecebido','valorpagto','pago'],
     formaPagamento: ['formapagamento','formadepagamento','meiodepagamento','forma','tipopagamento'],
     saldo: ['saldo','saldoapagar','valorpedente','restante','valoremaberto'],
     observacoes: ['observacoes','observacao','obs','notas','comentarios','comentario'],
@@ -111,7 +111,10 @@ function smartAnalyzeSheets_(sheets) {
     const exactPhone=phone?people.filter(p=>smartDigits_(p.Telefone)===phone):[];
     let candidates=[];
     let status='NOVO',motivo='Nenhum cadastro correspondente encontrado.';
-    if (exactDoc.length===1) {candidates=exactDoc;status='ASSOCIAR';motivo='Documento coincide com um cadastro existente.';}
+    if (exactDoc.length===1 && exactPhone.length===1 && exactDoc[0].PessoaID!==exactPhone[0].PessoaID) {
+      candidates=[exactDoc[0],exactPhone[0]];status='REVISAR';motivo='Documento e telefone apontam para cadastros diferentes; confira antes de associar.';
+    }
+    else if (exactDoc.length===1) {candidates=exactDoc;status='ASSOCIAR';motivo='Documento coincide com um cadastro existente.';}
     else if (exactDoc.length>1) {candidates=exactDoc;status='REVISAR';motivo='Documento aparece em mais de um cadastro.';}
     else if (exactPhone.length===1) {candidates=exactPhone;status='ASSOCIAR';motivo='Telefone coincide com um cadastro existente.';}
     else if (exactPhone.length>1) {candidates=exactPhone;status='REVISAR';motivo='Telefone aparece em mais de um cadastro.';}
