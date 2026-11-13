@@ -6,7 +6,7 @@
 
 const APP = Object.freeze({
   name: 'Sistema de Viagens',
-  version: '0.1.0-dev.12',
+  version: '0.1.0-dev.13',
   sheets: {
     PAINEL: [],
     PESSOAS: ['PessoaID', 'Nome', 'Telefone', 'Observacoes', 'CriadoEm', 'AtualizadoEm', 'Status', 'TipoDocumento', 'NumeroDocumento', 'OrgaoEmissor'],
@@ -761,7 +761,7 @@ function applyBatchImport(tipo, viagemId, matriz) {
 }
 
 /** Converte arquivo XLSX temporariamente para Planilhas e devolve a primeira aba como matriz. Requer serviço avançado Drive API v3. */
-function readXlsxImport(base64, fileName) {
+function readXlsxImportLegacy(base64, fileName) {
   if (typeof Drive === 'undefined' || !Drive.Files) {
     throw new Error('A leitura de Excel ainda não está habilitada. No Apps Script, abra Serviços (+), adicione Drive API (versão v3) e salve. Se continuar, habilite Google Drive API no projeto Google Cloud associado. CSV e colagem continuam disponíveis.');
   }
