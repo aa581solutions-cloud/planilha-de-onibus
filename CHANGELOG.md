@@ -6,11 +6,12 @@
 - Somente o campo Nome é obrigatório; demais campos são opcionais e permanecem vazios quando ausentes.
 - XLSX agora é lido em todas as abas e a melhor correspondência de cabeçalhos é selecionada automaticamente.
 - Adicionados mapeamentos flexíveis para nome, telefone, documento, data de pagamento, valor da passagem, valor pago, forma de pagamento, saldo e observações, incluindo os cabeçalhos `Passagem`, `Pagamento` e `Saldo/Troco`.
-- Adicionada revisão de nomes iguais/semelhantes; documento e telefone são usados como identificadores fortes. Casos ambíguos exigem decisão humana.
+- Adicionada revisão manual de possíveis duplicidades, conflitos de documento/telefone, nomes iguais/semelhantes e pessoas já vinculadas à viagem.
+- A revisão permite mesclar com cadastro escolhido, editar dados antes de gravar, salvar como novo ou apagar somente a linha da importação atual; nenhuma duplicidade é descartada automaticamente.
 - A importação inteligente cria/associa pessoas, vincula à viagem ativa, registra o valor previsto quando disponível e lança pagamentos somente quando há valor pago.
 - Pagamento sem data é preservado com data em branco; campos financeiros ausentes não são inventados.
 - Prévia compara saldo de origem com saldo calculado e aponta divergências.
-- Reimportações não devem duplicar inscrições e pagamentos equivalentes.
+- Reimportações verificam inscrições e pagamentos equivalentes; casos que exigem decisão devem passar por revisão manual.
 - Mantida a importação antiga como opção legada para compatibilidade.
 - A versão DEV.12 permanece preservada como base anterior.
 
