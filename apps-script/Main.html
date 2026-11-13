@@ -339,7 +339,7 @@ function showSmartImportPreview(sheets){
   google.script.run.withSuccessHandler(r=>{
     pendingImport={type:'integral',sheets:sheets,tripId:activeTripId};
     const decisions=r.linhas.filter(x=>x.status==='REVISAR').map(x=>{
-      const opts='<option value="">Escolha como tratar</option><option value="new">Cadastrar como pessoa nova</option>'+x.candidatos.map(p=>'<option value="'+esc(p.id)+'">Associar a '+esc(p.nome)+' — '+esc(p.telefone||p.documento||p.id)+'</option>').join('');
+      const opts='<option value="">Escolha como tratar</option><option value="skip">Não importar esta linha</option><option value="new">Cadastrar como pessoa nova</option>'+x.candidatos.map(p=>'<option value="'+esc(p.id)+'">Associar a '+esc(p.nome)+' — '+esc(p.telefone||p.documento||p.id)+'</option>').join('');
       return '<label style="display:block;margin:8px 0">Linha '+x.sourceRow+' — '+esc(x.nome)+'<select data-smart-decision="'+esc(x.rowId)+'" style="display:block;width:100%;margin-top:4px">'+opts+'</select><small>'+esc(x.motivo)+'</small></label>'
     }).join('');
     const summary='<p><b>Aba selecionada:</b> '+esc(r.abaEscolhida)+' | <b>Abas examinadas:</b> '+esc(r.abasAnalisadas.join(', '))+'</p>'+
