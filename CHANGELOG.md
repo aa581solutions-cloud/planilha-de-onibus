@@ -8,6 +8,10 @@
 - Adicionados mapeamentos flexíveis para nome, telefone, documento, data de pagamento, valor da passagem, valor pago, forma de pagamento, saldo e observações, incluindo os cabeçalhos `Passagem`, `Pagamento` e `Saldo/Troco`.
 - Adicionada revisão manual de possíveis duplicidades, conflitos de documento/telefone, nomes iguais/semelhantes e pessoas já vinculadas à viagem.
 - A revisão permite mesclar com cadastro escolhido, editar dados antes de gravar, salvar como novo ou apagar somente a linha da importação atual; nenhuma duplicidade é descartada automaticamente.
+- Repetições dentro do arquivo mantêm candidatos de cadastros já existentes para facilitar a mesclagem.
+- Pagamentos com mesma participação, data, valor e forma são sinalizados; o usuário pode confirmar explicitamente um lançamento igual quando legítimo.
+- Todas as decisões e edições são pré-validadas antes de iniciar a gravação, reduzindo risco de importação parcial por erro previsível.
+- Edições explícitas de valor previsto e número de inscrição podem atualizar os campos correspondentes da participação existente.
 - A importação inteligente cria/associa pessoas, vincula à viagem ativa, registra o valor previsto quando disponível e lança pagamentos somente quando há valor pago.
 - Pagamento sem data é preservado com data em branco; campos financeiros ausentes não são inventados.
 - Prévia compara saldo de origem com saldo calculado e aponta divergências.
