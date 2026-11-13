@@ -12,7 +12,7 @@ const APP = Object.freeze({
     PESSOAS: ['PessoaID', 'Nome', 'Telefone', 'Observacoes', 'CriadoEm', 'AtualizadoEm', 'Status', 'TipoDocumento', 'NumeroDocumento', 'OrgaoEmissor'],
     VIAGENS: ['ViagemID', 'Nome', 'DataIda', 'DataRetorno', 'Destino', 'Status', 'Observacoes', 'CriadoEm', 'TipoEvento', 'DiasProgramados'],
     PROGRAMACAO: ['ProgramacaoID', 'ViagemID', 'Data', 'DiaAtivo', 'HoraIda', 'HoraVolta', 'Ordem', 'CriadoEm'],
-    PARTICIPANTES: ['ParticipacaoID', 'ViagemID', 'PessoaID', 'Status', 'VeiculoID', 'NumeroAssento', 'ValorPrevisto', 'Observacoes', 'CriadoEm', 'AtualizadoEm'],
+    PARTICIPANTES: ['ParticipacaoID', 'ViagemID', 'PessoaID', 'Status', 'VeiculoID', 'NumeroAssento', 'ValorPrevisto', 'Observacoes', 'CriadoEm', 'AtualizadoEm', 'NumeroInscricao'],
     PAGAMENTOS: ['PagamentoID', 'ParticipacaoID', 'Data', 'Valor', 'Forma', 'Referencia', 'Observacoes', 'RegistradoEm'],
     VEICULOS: ['VeiculoID', 'ViagemID', 'Tipo', 'Identificacao', 'Capacidade', 'Status', 'Observacoes', 'CriadoEm'],
     ASSENTOS: ['AssentoID', 'ViagemID', 'VeiculoID', 'NumeroAssento', 'Status', 'ParticipacaoID', 'AtualizadoEm'],
