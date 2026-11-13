@@ -49,15 +49,15 @@ function smartDigits_(value) {
 
 function smartDate_(value) {
   if (value === '' || value == null) return '';
-  if (value instanceof Date && !isNaN(value.getTime())) return value;
+  if (value instanceof Date && !isNaN(value.getTime())) return Utilities.formatDate(value,Session.getScriptTimeZone(),'yyyy-MM-dd');
   const s = clean_(value);
   let m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (m) return new Date(Number(m[3]), Number(m[2])-1, Number(m[1]));
+  if (m) return m[3]+'-'+m[2]+'-'+m[1];
   m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (m) return new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
+  if (m) return m[1]+'-'+m[2]+'-'+m[3];
   const d = new Date(s);
   if (isNaN(d.getTime())) throw new Error('Data de pagamento inválida: ' + s);
-  return d;
+  return Utilities.formatDate(d,Session.getScriptTimeZone(),'yyyy-MM-dd');
 }
 
 function smartMoney_(value) {
@@ -201,8 +201,8 @@ function applySmartImport(viagemId, sheets, decisions) {
         if(numCol>0 && line.numeroInscricao && !clean_(participantSheet.getRange(row,numCol).getValue())) participantSheet.getRange(row,numCol).setValue(line.numeroInscricao);
       }
       if(line.valorPagoNum!=null && line.valorPagoNum>0) {
-        const date=line.dataPagamentoValue || '';
-        const signature=[part.ParticipacaoID,date instanceof Date?importDateKey_(date):'',line.valorPagoNum,norm_(line.formaPagamento),norm_(line.observacoes)].join('|');
+        const date=line.dataPagamentoValue ? importDateValue_(line.dataPagamentoValue) : '';
+        const signature=[part.ParticipacaoID,date?importDateKey_(date):'',line.valorPagoNum,norm_(line.formaPagamento),norm_(line.observacoes)].join('|');
         const already=rows_('PAGAMENTOS').some(p=>[p.ParticipacaoID,importDateKey_(p.Data),Number(p.Valor||0),norm_(p.Forma),norm_(p.Observacoes)].join('|')===signature);
         if(!already) {
           paymentSheet.appendRow([newId_('PG'),part.ParticipacaoID,date,line.valorPagoNum,line.formaPagamento,'',line.observacoes,new Date()]);
