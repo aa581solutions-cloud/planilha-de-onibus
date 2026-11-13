@@ -14,10 +14,10 @@ function smartAliases_() {
     documento: ['documento','documentodapessoa','cpf','cnpj','rg','numerodocumento','numerododocumento','documentoidentidade','identidade'],
     tipoDocumento: ['tipodocumento','tipode documento','tipodedocumento'],
     dataPagamento: ['datapagamento','datadepagamento','data','datadopagamento','pagamentoem','datapagto','datapagamento'],
-    valorPassagem: ['valorpassagem','valordapassagem','valorprevisto','valortotal','valorviagem'],
+    valorPassagem: ['valorpassagem','valordapassagem','passagem','valorprevisto','valortotal','valorviagem'],
     valorPago: ['valorpago','totalpago','valordopagamento','valorrecebido','valorpagto','quantia paga'],
-    formaPagamento: ['formapagamento','formadepagamento','meiodepagamento','forma','tipopagamento'],
-    saldo: ['saldo','saldoapagar','valorpedente','restante','valoremaberto'],
+    formaPagamento: ['formapagamento','formadepagamento','meiodepagamento','forma','tipopagamento','pagamento'],
+    saldo: ['saldo','saldotroco','saldoapagar','valorpedente','restante','valoremaberto','troco'],
     observacoes: ['observacoes','observacao','obs','notas','comentarios','comentario'],
     numeroInscricao: ['numeroinscricao','numerodainscricao','inscricao','inscricaonumero','ninscricao','numero','n']
   };
