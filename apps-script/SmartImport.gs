@@ -124,13 +124,12 @@ function smartAnalyzeSheets_(sheets) {
       if (candidates.length) {status='REVISAR';motivo='Nome igual ou semelhante; confirme se é a mesma pessoa ou um homônimo.';}
     }
     let fare=null, paid=null, date='';
-    try { fare=smartMoney_(row.valorPassagem); paid=smartMoney_(row.valorPago); if(row.dataPagamento) date=smartDate_(row.dataPagamento); }
+    try { fare=smartMoney_(row.valorPassagem); paid=smartMoney_(row.valorPago); if(row.dataPagamento) date=smartDate_(row.dataPagamento); row.saldoOrigemNum=row.saldo===''?null:smartMoney_(row.saldo); }
     catch(e) { status='ERRO'; motivo=e.message; }
     if (status!=='ERRO') {
       row.valorPassagemNum=fare;
       row.valorPagoNum=paid;
       row.dataPagamentoValue=date;
-      row.saldoOrigemNum=row.saldo===''?null:smartMoney_(row.saldo);
       row.saldoCalculado=fare==null?null:Math.max(0,fare-(paid||0));
       row.divergenciaSaldo=row.saldoOrigemNum!=null && row.saldoCalculado!=null && Math.abs(row.saldoOrigemNum-row.saldoCalculado)>0.01;
       row.candidatos=candidates.map(p=>({id:p.PessoaID,nome:p.Nome,telefone:p.Telefone||'',documento:p.NumeroDocumento||''}));
@@ -148,7 +147,7 @@ function previewSmartImport(viagemId, sheets) {
   result.linhas.forEach(line=>{
     if(line.status==='ERRO') return;
     const existing=rows_('PARTICIPANTES').find(p=>p.ViagemID===viagemId && p.Status!=='CANCELADO' && line.candidatos.some(c=>c.id===p.PessoaID));
-    if(line.status==='ASSOCIAR' && existing){line.status='DUPLICADO';line.motivo='Esta pessoa já está vinculada à viagem selecionada.';}
+    if(line.status==='ASSOCIAR' && existing){line.jaInscrito=true;line.motivo='Pessoa já vinculada à viagem; os dados financeiros novos ainda serão conferidos.';}
     if(line.status==='NOVO'){
       const existingName=rows_('PESSOAS').filter(p=>p.Status!=='INATIVO' && norm_(p.Nome)===norm_(line.nome));
       if(existingName.length){line.status='REVISAR';line.motivo='Já existe pessoa com este nome; confirme se é a mesma pessoa.';line.candidatos=existingName.map(p=>({id:p.PessoaID,nome:p.Nome,telefone:p.Telefone||'',documento:p.NumeroDocumento||''}));}
