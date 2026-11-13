@@ -5,7 +5,8 @@
 - Adicionada importação inteligente de Excel/CSV com identificação da aba pelo conteúdo dos cabeçalhos, sem depender do nome da aba.
 - Somente o campo Nome é obrigatório; demais campos são opcionais e permanecem vazios quando ausentes.
 - XLSX agora é lido em todas as abas e a melhor correspondência de cabeçalhos é selecionada automaticamente.
-- Adicionados mapeamentos flexíveis para nome, telefone, documento, data de pagamento, valor da passagem, valor pago, forma de pagamento, saldo e observações, incluindo os cabeçalhos `Passagem`, `Pagamento` e `Saldo/Troco`.
+- Adicionados mapeamentos flexíveis para nome, telefone, tipo/número/órgão emissor do documento, data de pagamento, valor da passagem, valor pago, forma de pagamento, saldo e observações, incluindo os cabeçalhos `Passagem`, `Pagamento` e `Saldo/Troco`.
+- Corrigida a cópia do órgão emissor: o campo agora é reconhecido, editável na revisão e gravado ao criar ou mesclar pessoas.
 - Adicionada revisão manual de possíveis duplicidades, conflitos de documento/telefone, nomes iguais/semelhantes e pessoas já vinculadas à viagem.
 - A revisão permite mesclar com cadastro escolhido, editar dados antes de gravar, salvar como novo ou apagar somente a linha da importação atual; nenhuma duplicidade é descartada automaticamente.
 - Repetições dentro do arquivo mantêm candidatos de cadastros já existentes para facilitar a mesclagem.
