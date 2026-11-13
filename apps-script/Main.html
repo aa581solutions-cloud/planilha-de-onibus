@@ -78,12 +78,12 @@
     <section id="reports" class="screen"><div class="panel"><h2>▥　Relatórios e Listas</h2><div class="inside"><div class="form-grid"><div><label>Viagem</label><select id="reportTrip" onchange="loadReportParticipants()"></select></div><div><label>Documento</label><select id="reportType"><option value="geral">Lista da Empresa</option><option value="capitao">Lista do Capitão</option><option value="veiculo">Lista por veículo e assento</option><option value="pagamentos">Lista de pagamentos</option><option value="confirmados">Passageiros confirmados</option><option value="resumo">Resumo da Viagem</option></select></div><div><label>Participante</label><select id="reportParticipant"></select></div><div><label>Situação</label><select id="participantStatus"><option value="PENDENTE">Pendente</option><option value="CONFIRMADO">Confirmado</option></select></div></div><div class="actions"><button class="btn gray" onclick="updateParticipantStatus()">Atualizar situação</button><button class="btn" onclick="previewReport()">Visualizar relatório</button><button class="btn green" onclick="printReport()">Imprimir / PDF</button></div><div id="reportArea"></div></div></div></section>
     <section id="search" class="screen"><div class="panel"><h2>⌕　Pesquisa e Consulta</h2><div class="inside"><div class="form-grid"><div><label>Pesquisar pessoas</label><input id="searchQuery" placeholder="Nome ou telefone"></div></div><div class="actions"><button class="btn" onclick="searchPeople()">Buscar</button></div><div id="searchResults" class="table-wrap"></div></div></div></section>
     <section id="import" class="screen"><div class="panel"><h2>⇧　Importar dados em lote</h2><div class="inside">
-<p>Importe pessoas, participantes ou pagamentos sem substituir os registros existentes. Para participantes e pagamentos, a viagem ativa precisa estar selecionada.</p>
-<div class="form-grid"><div><label>O que deseja importar?</label><select id="importType"><option value="pessoas">Pessoas (cadastro único)</option><option value="participantes">Participantes da viagem ativa</option><option value="pagamentos">Pagamentos da viagem ativa</option></select></div><div><label>Arquivo Excel (.xlsx) ou CSV</label><input id="importFile" type="file" accept=".xlsx,.csv,.txt"></div></div>
+<p>Importe uma planilha completa. O sistema procura automaticamente a aba pelos cabeçalhos, exige somente Nome e copia os demais campos quando existirem. A viagem ativa recebe as inscrições e os dados financeiros disponíveis.</p>
+<div class="form-grid"><div><label>O que deseja importar?</label><select id="importType"><option value="integral">Importação inteligente (pessoas + viagem + financeiro)</option><option value="pessoas">Pessoas (cadastro único — legado)</option><option value="participantes">Participantes da viagem ativa — legado</option><option value="pagamentos">Pagamentos da viagem ativa — legado</option></select></div><div><label>Arquivo Excel (.xlsx) ou CSV</label><input id="importFile" type="file" accept=".xlsx,.csv,.txt"></div></div>
 <label style="margin-top:12px">Ou cole os dados da planilha (primeira linha deve conter os títulos das colunas)</label><textarea id="importPaste" rows="8" placeholder="Nome&#9;Telefone&#9;TipoDocumento&#9;NumeroDocumento&#9;OrgaoEmissor&#10;Maria Silva&#9;11999999999&#9;RG&#9;1234567&#9;SSP/SP"></textarea>
 <div class="actions"><button class="btn" onclick="previewImportData()">Analisar e pré-visualizar</button><button class="btn green" onclick="confirmImportData()" id="applyImportBtn" disabled>Confirmar importação</button><button class="btn gray" onclick="clearImport()">Limpar</button></div>
 <div id="importStatus" class="status"></div><div id="importPreview"></div>
-<div class="hint">A importação não apaga cadastros nem pagamentos. Duplicidades são ignoradas e linhas inválidas ficam de fora. Confira a prévia antes de confirmar.</div>
+<div class="hint">A importação não altera o arquivo original. Somente Nome é obrigatório; os outros campos são opcionais. Possíveis homônimos exigem sua decisão. Confira a prévia antes de confirmar.</div>
 </div></div></section>
     <section id="settings" class="screen"><div class="panel"><h2>⚙　Configurações do Sistema</h2><div class="inside"><p>Preferências gerais da operação. Os valores abaixo são apenas campos de interface nesta versão; ainda não são gravados na planilha.</p><div class="form-grid"><div><label>Valor padrão da viagem (R$)</label><input id="defaultFare" type="number" min="0" step=".01" value="0"></div><div><label>Data limite para inscrição</label><input id="deadline" type="date"></div></div><div class="hint">As configurações persistentes e o backup serão implementados em etapa própria, sem alterar os dados cadastrados.</div></div></div></section>
     <div class="footer">Sistema de Viagens — Planejando, organizando e vivendo essa jornada juntos!　|　AA Solutions</div>
@@ -256,7 +256,7 @@ function loadArchivedTrips(){
 function searchPeople(){const q=(($('homeSearch')?.value||$('peopleSearch')?.value||$('searchQuery')?.value||'')+' '+($('homePhone')?.value||'')).trim().toLocaleLowerCase();const found=people.filter(p=>(p.nome+' '+p.telefone+' '+p.numeroDocumento).toLocaleLowerCase().includes(q));const html='<div class="table-wrap"><table><thead><tr><th>Nome</th><th>Telefone</th><th>Documento</th><th>Ação</th></tr></thead><tbody>'+(found.length?found.map(p=>'<tr><td>'+esc(p.nome)+'</td><td>'+esc(p.telefone)+'</td><td>'+esc([p.tipoDocumento,p.numeroDocumento].filter(Boolean).join(' — '))+'</td><td><button class="btn gray" type="button" onclick="editPerson(\''+esc(p.id)+'\')">Editar</button></td></tr>').join(''):'<tr><td colspan="4">Nenhum registro encontrado.</td></tr>')+'</tbody></table></div>';['homeSearchResult','peopleResults','searchResults'].forEach(id=>{if($(id))$(id).innerHTML=html})}
 function enroll(){if(!activeTripId){msg('enrollStatus','Identifique a viagem na parte superior antes de adicionar participantes.');return}call('enrollParticipant',{viagemId:activeTripId,pessoaId:$('enrollPerson').value,valorPrevisto:$('expected').value,observacoes:$('enrollNotes').value},'enrollStatus',renderParticipants)}
 function clearEnroll(){$('enrollPerson').value='';$('expected').value='0';$('enrollNotes').value=''}
-function renderParticipants(){const id=activeTripId;if(!id){$('participantList').innerHTML='';msg('enrollTripInfo','Selecione uma viagem na parte superior.');return}msg('enrollTripInfo','Viagem selecionada: '+(trips.find(t=>t.id===id)?.nome||''));google.script.run.withSuccessHandler(p=>{$('participantList').innerHTML=table(['Participante','Situação','Previsto','Pago','Saldo'],p.map(x=>[x.nome,x.status,money(x.previsto),money(x.pago),money(x.saldo)]))}).listParticipants(id)}
+function renderParticipants(){const id=activeTripId;if(!id){$('participantList').innerHTML='';msg('enrollTripInfo','Selecione uma viagem na parte superior.');return}msg('enrollTripInfo','Viagem selecionada: '+(trips.find(t=>t.id===id)?.nome||''));google.script.run.withSuccessHandler(p=>{$('participantList').innerHTML=table(['Participante','Situação','Previsto','Pago','Saldo'],p.map(x=>[x.nome,x.status,money(x.previsto),money(x.pago),money(x.saldo)]))}).withFailureHandler(e=>msg('enrollStatus','Não foi possível carregar participantes: '+e.message)).listParticipants(id)}
 function cancelEnrollment(){const id=$('reportParticipant')?.value;if(!id){msg('enrollStatus','Selecione uma inscrição na tela de relatórios para cancelar.');return}if(!confirm('Cancelar esta inscrição? O histórico será preservado.'))return;google.script.run.withSuccessHandler(()=>{msg('enrollStatus','Inscrição cancelada. Histórico preservado.');refresh()}).withFailureHandler(e=>msg('enrollStatus',e.message)).cancelParticipation(id)}
 function loadPaymentPeople(){const id=$('paymentTrip').value;if(!id)return;google.script.run.withSuccessHandler(p=>fill('paymentParticipant',p,'Selecione uma inscrição')).listParticipants(id)}
 function registerPayment(){call('registerPayment',{participacaoId:$('paymentParticipant').value,data:$('paymentDate').value,valor:$('paymentAmount').value,forma:$('paymentMethod').value,observacoes:$('paymentNotes').value},'paymentStatus',clearPayment)}
@@ -319,9 +319,58 @@ function chooseActiveTrip(id){activeTripId=id||'';$('activeTripSelect').value=ac
 function parseImportText(text){const first=(text.split(/\r?\n/)[0]||'');const delimiter=first.includes('\t')?'\t':(first.split(';').length>first.split(',').length?';':',');const rows=[];let row=[],cell='',quoted=false;for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'&&text[i+1]==='"'&&quoted){cell+='"';i++}else if(c==='"'){quoted=!quoted}else if(c===delimiter&&!quoted){row.push(cell);cell=''}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(v=>String(v).trim()))rows.push(row);row=[];cell=''}else cell+=c}row.push(cell);if(row.some(v=>String(v).trim()))rows.push(row);return rows}
 function resetImportPreview(){pendingImport=null;$('applyImportBtn').disabled=true}
 function clearImport(){$('importPaste').value='';$('importFile').value='';$('importPreview').innerHTML='';msg('importStatus','');resetImportPreview()}
-function previewImportData(){const type=$('importType').value;if(type!=='pessoas'&&!activeTripId){msg('importStatus','Selecione a viagem na parte superior antes de importar participantes ou pagamentos.');return}const file=$('importFile').files[0];if(file&&file.name.toLowerCase().endsWith('.xlsx')){const reader=new FileReader();reader.onload=e=>{const b64=String(e.target.result).split(',')[1];google.script.run.withSuccessHandler(rows=>showImportPreview(type,rows)).withFailureHandler(e=>msg('importStatus','Erro ao ler Excel: '+e.message)).readXlsxImport(b64,file.name)};reader.readAsDataURL(file);return}if(file){const reader=new FileReader();reader.onload=e=>showImportPreview(type,parseImportText(e.target.result));reader.readAsText(file,'UTF-8');return}const rows=parseImportText($('importPaste').value.trim());showImportPreview(type,rows)}
+function previewImportData(){
+  const type=$('importType').value;
+  if(type==='integral'&&!activeTripId){msg('importStatus','Selecione a viagem de destino na parte superior antes de importar.');return}
+  if(type!=='integral'&&type!=='pessoas'&&!activeTripId){msg('importStatus','Selecione a viagem na parte superior antes de importar participantes ou pagamentos.');return}
+  const file=$('importFile').files[0];
+  if(file&&file.name.toLowerCase().endsWith('.xlsx')){
+    const reader=new FileReader();reader.onload=e=>{const b64=String(e.target.result).split(',')[1];google.script.run.withSuccessHandler(result=>{
+      if(type==='integral')showSmartImportPreview(result.sheets||[]);
+      else {const first=(result.sheets||[])[0];showImportPreview(type,first?first.values:[])}
+    }).withFailureHandler(e=>msg('importStatus','Erro ao ler Excel: '+e.message)).readXlsxImport(b64,file.name)};reader.readAsDataURL(file);return
+  }
+  if(file){const reader=new FileReader();reader.onload=e=>{const rows=parseImportText(e.target.result);if(type==='integral')showSmartImportPreview([{name:file.name,values:rows}]);else showImportPreview(type,rows)};reader.readAsText(file,'UTF-8');return}
+  const rows=parseImportText($('importPaste').value.trim());
+  if(type==='integral')showSmartImportPreview([{name:'Dados colados',values:rows}]);else showImportPreview(type,rows)
+}
+function showSmartImportPreview(sheets){
+  if(!sheets||!sheets.length){msg('importStatus','Não encontrei abas ou dados para analisar.');return}
+  google.script.run.withSuccessHandler(r=>{
+    pendingImport={type:'integral',sheets:sheets,tripId:activeTripId};
+    const decisions=r.linhas.filter(x=>x.status==='REVISAR').map(x=>{
+      const opts='<option value="">Escolha como tratar</option><option value="new">Cadastrar como pessoa nova</option>'+x.candidatos.map(p=>'<option value="'+esc(p.id)+'">Associar a '+esc(p.nome)+' — '+esc(p.telefone||p.documento||p.id)+'</option>').join('');
+      return '<label style="display:block;margin:8px 0">Linha '+x.sourceRow+' — '+esc(x.nome)+'<select data-smart-decision="'+esc(x.rowId)+'" style="display:block;width:100%;margin-top:4px">'+opts+'</select><small>'+esc(x.motivo)+'</small></label>'
+    }).join('');
+    const summary='<p><b>Aba selecionada:</b> '+esc(r.abaEscolhida)+' | <b>Abas examinadas:</b> '+esc(r.abasAnalisadas.join(', '))+'</p>'+
+      '<p><b>Campos encontrados:</b> '+esc(r.campos.join(', '))+'<br><b>Campos ausentes:</b> '+esc(r.camposAusentes.join(', ')||'nenhum')+'</p>'+
+      '<p><b>Novos:</b> '+r.novos+' | <b>Correspondência:</b> '+r.associar+' | <b>Conferir:</b> '+r.revisar+' | <b>Já inscritos:</b> '+r.duplicados+' | <b>Sem nome:</b> '+r.erros+'</p>';
+    const rows=r.linhas.map(x=>[x.sourceRow,x.nome||'—',x.status,x.motivo||'',x.valorPassagem||'',x.valorPago||'',x.saldo||'']);
+    $('importPreview').innerHTML=summary+table(['Linha','Nome','Resultado','Conferência','Passagem','Pago','Saldo origem'],rows)+(decisions?'<h3>Decida os possíveis homônimos</h3>'+decisions:'');
+    $('applyImportBtn').disabled=r.prontos===0&&r.revisar===0;
+    msg('importStatus','Prévia pronta. Nenhum dado foi gravado. Revise as correspondências antes de confirmar.');
+  }).withFailureHandler(e=>msg('importStatus','Erro na análise: '+e.message)).previewSmartImport(activeTripId,sheets)
+}
+function confirmImportData(){
+  if(!pendingImport)return;
+  if(pendingImport.type==='integral'){
+    const decisions={};
+    const controls=[...document.querySelectorAll('[data-smart-decision]')];
+    for(const el of controls){if(!el.value){msg('importStatus','Resolva todas as possíveis duplicidades antes de confirmar.');return}decisions[el.dataset.smartDecision]=el.value}
+    if(!confirm('Confirmar a importação inteligente para a viagem selecionada? A planilha original não será alterada.'))return;
+    const p=pendingImport;
+    $('applyImportBtn').disabled=true;
+    google.script.run.withSuccessHandler(r=>{
+      msg('importStatus','Importação concluída: '+r.importados+' linhas; '+r.pessoasCriadas+' pessoas novas; '+r.participantesVinculados+' inscrições; '+r.pagamentosCriados+' pagamentos; '+r.duplicados+' duplicidades ignoradas.');
+      pendingImport=null;$('importPreview').innerHTML='';refresh()
+    }).withFailureHandler(e=>{$('applyImportBtn').disabled=false;msg('importStatus','Erro na importação: '+e.message)}).applySmartImport(p.tripId,p.sheets,decisions);
+    return;
+  }
+  if(!confirm('Confirmar a inclusão dos registros válidos? Nenhum dado existente será apagado.'))return;
+  const p=pendingImport;
+  google.script.run.withSuccessHandler(r=>{msg('importStatus','Importação concluída: '+r.importados+' incluídos; '+r.duplicados+' duplicados ignorados; '+r.invalidos+' linhas com erro.');pendingImport=null;$('applyImportBtn').disabled=true;refresh()}).withFailureHandler(e=>msg('importStatus','Erro na importação: '+e.message)).applyBatchImport(p.type,p.tripId,p.rows)
+}
 function showImportPreview(type,rows){if(!rows||rows.length<2){msg('importStatus','Não encontrei cabeçalho e linhas de dados.');return}google.script.run.withSuccessHandler(r=>{pendingImport={type:type,rows:rows,tripId:activeTripId};$('applyImportBtn').disabled=r.prontos===0;$('importPreview').innerHTML='<p><b>Registros analisados:</b> '+r.total+' | <b>Prontos:</b> '+r.prontos+' | <b>Duplicados:</b> '+r.duplicados+' | <b>Com erro:</b> '+r.invalidos+'</p>'+table(['Linha','Nome','Resultado','Motivo'],r.linhas.map(x=>[x.linha,x.nome,x.status,x.motivo]));msg('importStatus','Prévia pronta. Nenhum dado foi gravado ainda.')}).withFailureHandler(e=>msg('importStatus','Erro na análise: '+e.message)).previewBatchImport(type,activeTripId,rows)}
-function confirmImportData(){if(!pendingImport)return;if(!confirm('Confirmar a inclusão dos registros válidos? Nenhum dado existente será apagado.'))return;const p=pendingImport;google.script.run.withSuccessHandler(r=>{msg('importStatus','Importação concluída: '+r.importados+' incluídos; '+r.duplicados+' duplicados ignorados; '+r.invalidos+' linhas com erro.');pendingImport=null;$('applyImportBtn').disabled=true;refresh()}).withFailureHandler(e=>msg('importStatus','Erro na importação: '+e.message)).applyBatchImport(p.type,p.tripId,p.rows)}
 
 function money(n){return 'R$ '+Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}
 function table(head,rows){return '<div class="table-wrap"><table><thead><tr>'+head.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+(rows.length?rows.map(r=>'<tr>'+r.map(v=>'<td>'+esc(v==null?'—':v)+'</td>').join('')+'</tr>').join(''):'<tr><td colspan="'+head.length+'">Nenhum registro encontrado.</td></tr>')+'</tbody></table></div>'}
