@@ -13,6 +13,7 @@ function smartAliases_() {
     telefone: ['telefone','celular','whatsapp','fone','numerodetelefone','numerodotelefone','contato'],
     documento: ['documento','documentodapessoa','cpf','cnpj','rg','numerodocumento','numerododocumento','documentoidentidade','identidade'],
     tipoDocumento: ['tipodocumento','tipode documento','tipodedocumento'],
+    orgaoEmissor: ['orgaoemissor','orgao','emissor','orgaodocumento','orgaodeemissao'], 
     dataPagamento: ['datapagamento','datadepagamento','data','datadopagamento','pagamentoem','datapagto','datapagamento'],
     valorPassagem: ['valorpassagem','valordapassagem','passagem','valorprevisto','valortotal','valorviagem'],
     valorPago: ['valorpago','totalpago','valordopagamento','valorrecebido','valorpagto','quantia paga'],
@@ -100,6 +101,7 @@ function smartAnalyzeSheets_(sheets) {
       telefone: smartValue_(line,col.telefone),
       documento: smartValue_(line,col.documento),
       tipoDocumento: smartValue_(line,col.tipoDocumento),
+      orgaoEmissor: smartValue_(line,col.orgaoEmissor),
       dataPagamento: smartValue_(line,col.dataPagamento),
       valorPassagem: smartValue_(line,col.valorPassagem),
       valorPago: smartValue_(line,col.valorPago),
@@ -238,6 +240,8 @@ function applySmartImport(viagemId, sheets, decisions) {
       if(Object.prototype.hasOwnProperty.call(edits,'nome')) line.nome=clean_(edits.nome);
       if(Object.prototype.hasOwnProperty.call(edits,'telefone')) line.telefone=clean_(edits.telefone);
       if(Object.prototype.hasOwnProperty.call(edits,'documento')) line.documento=clean_(edits.documento);
+      if(Object.prototype.hasOwnProperty.call(edits,'tipoDocumento')) line.tipoDocumento=clean_(edits.tipoDocumento);
+      if(Object.prototype.hasOwnProperty.call(edits,'orgaoEmissor')) line.orgaoEmissor=clean_(edits.orgaoEmissor);
       if(Object.prototype.hasOwnProperty.call(edits,'observacoes')) line.observacoes=clean_(edits.observacoes);
       if(Object.prototype.hasOwnProperty.call(edits,'formaPagamento')) line.formaPagamento=clean_(edits.formaPagamento);
       if(Object.prototype.hasOwnProperty.call(edits,'numeroInscricao')) line.numeroInscricao=clean_(edits.numeroInscricao);
@@ -258,11 +262,12 @@ function applySmartImport(viagemId, sheets, decisions) {
         mergeField('Nome',line.nome,Object.prototype.hasOwnProperty.call(edits,'nome'));
         mergeField('Telefone',line.telefone,Object.prototype.hasOwnProperty.call(edits,'telefone'));
         mergeField('NumeroDocumento',line.documento,Object.prototype.hasOwnProperty.call(edits,'documento'));
-        mergeField('TipoDocumento',line.tipoDocumento,false);
+        mergeField('TipoDocumento',line.tipoDocumento,Object.prototype.hasOwnProperty.call(edits,'tipoDocumento'));
+        mergeField('OrgaoEmissor',line.orgaoEmissor,Object.prototype.hasOwnProperty.call(edits,'orgaoEmissor'));
         mergeField('Observacoes',line.observacoes,Object.prototype.hasOwnProperty.call(edits,'observacoes'));
       } else if(action==='save' || action==='new') {
         const id=newId_('P');
-        peopleSheet.appendRow([id,line.nome,line.telefone,line.observacoes,new Date(),new Date(),'ATIVO',line.tipoDocumento,line.documento,'']);
+        peopleSheet.appendRow([id,line.nome,line.telefone,line.observacoes,new Date(),new Date(),'ATIVO',line.tipoDocumento,line.documento,line.orgaoEmissor]);
         person={PessoaID:id,Nome:line.nome,Telefone:line.telefone,NumeroDocumento:line.documento};
         created++;
       } else {
