@@ -30,6 +30,7 @@
 - Mapeamento do órgão emissor do documento adicionado à importação inteligente.
 - O órgão emissor e o tipo de documento podem ser corrigidos na tela de revisão.
 - Ao mesclar, campos editados expressamente podem atualizar tipo e órgão emissor; ao criar pessoa, o órgão emissor é gravado no campo próprio.
+- O teste de reconhecimento de cabeçalho foi ampliado para incluir `Órgão Emissor`; essa ampliação ainda precisa ser executada no Apps Script de teste.
 
 ## Limites desta validação
 
