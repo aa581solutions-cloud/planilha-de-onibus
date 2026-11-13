@@ -89,7 +89,7 @@ function smartAnalyzeSheets_(sheets) {
   const col = chosen.header.columns;
   const people = rows_('PESSOAS').filter(p=>p.Status!=='INATIVO');
   const output = [];
-  const seenSourceNames = new Set();
+  const seenSourceKeys = new Set();
   for (let i=chosen.header.row+1;i<chosen.values.length;i++) {
     const line=chosen.values[i] || [];
     if (!line.some(v=>clean_(v)!=='')) continue;
@@ -113,8 +113,13 @@ function smartAnalyzeSheets_(sheets) {
       continue;
     }
     const doc=smartDigits_(row.documento), phone=smartDigits_(row.telefone), name=norm_(row.nome);
-    if (seenSourceNames.has(name) && !doc && !phone) { output.push({...row,status:'REVISAR',motivo:'Nome repetido no próprio arquivo; confirme se é a mesma pessoa.',candidatos:[]}); continue; }
-    seenSourceNames.add(name);
+    const sourceKeys=[];
+    if(doc) sourceKeys.push('doc:'+doc);
+    if(phone) sourceKeys.push('phone:'+phone);
+    if(!doc && !phone) sourceKeys.push('name:'+name);
+    const repeatedInFile=sourceKeys.some(key=>seenSourceKeys.has(key));
+    sourceKeys.forEach(key=>seenSourceKeys.add(key));
+    if(repeatedInFile) { output.push({...row,status:'REVISAR',motivo:'Documento, telefone ou nome sem identificadores repetido no próprio arquivo; confira se é a mesma pessoa.',candidatos:[]}); continue; }
     const exactDoc=doc?people.filter(p=>smartDigits_(p.NumeroDocumento)===doc):[];
     const exactPhone=phone?people.filter(p=>smartDigits_(p.Telefone)===phone):[];
     let candidates=[];
