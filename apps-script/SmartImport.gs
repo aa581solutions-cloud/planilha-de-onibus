@@ -194,35 +194,58 @@ function applySmartImport(viagemId, sheets, decisions) {
     const preview=previewSmartImport(viagemId,sheets);
     const choice=decisions || {};
     const unresolved=preview.linhas.filter(x=>x.status==='REVISAR' && !choice[x.rowId]);
-    if(unresolved.length) throw new Error('Há '+unresolved.length+' possível(is) duplicidade(s) sem decisão. Escolha associar ou cadastrar como pessoa nova.');
-    let imported=0,created=0,linked=0,payments=0,duplicates=preview.duplicados;
+    if(unresolved.length) throw new Error('Há '+unresolved.length+' registro(s) aguardando revisão. Escolha mesclar, salvar como novo ou apagar da importação.');
+    let imported=0,created=0,linked=0,payments=0,removed=0;
     const peopleSheet=sheet_('PESSOAS'), participantSheet=sheet_('PARTICIPANTES'), paymentSheet=sheet_('PAGAMENTOS');
     preview.linhas.forEach(line=>{
-      if(line.status==='ERRO'||line.status==='DUPLICADO') return;
-      const decision=choice[line.rowId] || (line.status==='ASSOCIAR' ? line.candidatos[0].id : 'new');
-      if(decision==='skip') return;
+      if(line.status==='ERRO') return;
+      const rawDecision=choice[line.rowId];
+      const decision=rawDecision && typeof rawDecision==='object' ? rawDecision : null;
+      const action=decision ? decision.action : (rawDecision || (line.status==='ASSOCIAR' ? 'merge' : 'save'));
+      if(action==='delete' || action==='skip') { removed++; return; }
+
+      const edits=decision && decision.edits ? decision.edits : {};
+      if(Object.prototype.hasOwnProperty.call(edits,'nome')) line.nome=clean_(edits.nome);
+      if(Object.prototype.hasOwnProperty.call(edits,'telefone')) line.telefone=clean_(edits.telefone);
+      if(Object.prototype.hasOwnProperty.call(edits,'documento')) line.documento=clean_(edits.documento);
+      if(Object.prototype.hasOwnProperty.call(edits,'observacoes')) line.observacoes=clean_(edits.observacoes);
+      if(Object.prototype.hasOwnProperty.call(edits,'formaPagamento')) line.formaPagamento=clean_(edits.formaPagamento);
+      if(Object.prototype.hasOwnProperty.call(edits,'numeroInscricao')) line.numeroInscricao=clean_(edits.numeroInscricao);
+      if(Object.prototype.hasOwnProperty.call(edits,'valorPassagem')) line.valorPassagemNum=edits.valorPassagem===''?null:smartMoney_(edits.valorPassagem);
+      if(Object.prototype.hasOwnProperty.call(edits,'valorPago')) line.valorPagoNum=edits.valorPago===''?null:smartMoney_(edits.valorPago);
+      if(Object.prototype.hasOwnProperty.call(edits,'dataPagamento')) line.dataPagamentoValue=edits.dataPagamento?smartDate_(edits.dataPagamento):'';
+
+      if(!line.nome) throw new Error('A linha '+line.sourceRow+' ficou sem Nome após a edição.');
       let person=null;
-      if(decision==='new') {
-        const existing=rows_('PESSOAS').filter(p=>p.Status!=='INATIVO' && norm_(p.Nome)===norm_(line.nome));
-        if(existing.length && line.status!=='REVISAR') throw new Error('O cadastro '+line.nome+' mudou após a prévia. Gere uma nova prévia.');
+      if(action==='merge') {
+        const personId=decision ? decision.personId : (typeof rawDecision==='string' ? rawDecision : '');
+        if(!personId) throw new Error('Escolha o cadastro que receberá a mesclagem na linha '+line.sourceRow+'.');
+        person=rows_('PESSOAS').find(p=>p.PessoaID===personId);
+        if(!person || (line.candidatos.length && !line.candidatos.some(c=>c.id===personId))) throw new Error('O cadastro escolhido não corresponde aos candidatos da linha '+line.sourceRow+'. Gere uma nova prévia.');
+        const personRow=findRowById_(peopleSheet,'PessoaID',person.PessoaID);
+        const headers=peopleSheet.getRange(1,1,1,peopleSheet.getLastColumn()).getDisplayValues()[0];
+        const mergeField=(field,value,force)=>{const col=headers.indexOf(field)+1;if(col>0 && value!=='' && (force || !clean_(peopleSheet.getRange(personRow,col).getValue())))peopleSheet.getRange(personRow,col).setValue(value);};
+        mergeField('Nome',line.nome,Object.prototype.hasOwnProperty.call(edits,'nome'));
+        mergeField('Telefone',line.telefone,Object.prototype.hasOwnProperty.call(edits,'telefone'));
+        mergeField('NumeroDocumento',line.documento,Object.prototype.hasOwnProperty.call(edits,'documento'));
+        mergeField('TipoDocumento',line.tipoDocumento,false);
+        mergeField('Observacoes',line.observacoes,Object.prototype.hasOwnProperty.call(edits,'observacoes'));
+      } else if(action==='save' || action==='new') {
         const id=newId_('P');
         peopleSheet.appendRow([id,line.nome,line.telefone,line.observacoes,new Date(),new Date(),'ATIVO',line.tipoDocumento,line.documento,'']);
         person={PessoaID:id,Nome:line.nome,Telefone:line.telefone,NumeroDocumento:line.documento};
         created++;
       } else {
-        person=rows_('PESSOAS').find(p=>p.PessoaID===decision);
-        if(!person || (line.candidatos.length && !line.candidatos.some(c=>c.id===decision))) throw new Error('A pessoa escolhida não corresponde aos candidatos apresentados. Gere uma nova prévia.');
-        const row=findRowById_(peopleSheet,'PessoaID',person.PessoaID);
-        const headers=peopleSheet.getRange(1,1,1,peopleSheet.getLastColumn()).getDisplayValues()[0];
-        const fill=(field,value)=>{const col=headers.indexOf(field)+1;if(col>0 && value && !clean_(peopleSheet.getRange(row,col).getValue()))peopleSheet.getRange(row,col).setValue(value);};
-        fill('Telefone',line.telefone);fill('NumeroDocumento',line.documento);fill('TipoDocumento',line.tipoDocumento);fill('Observacoes',line.observacoes);
+        throw new Error('Ação de revisão inválida na linha '+line.sourceRow+'.');
       }
+
       let part=rows_('PARTICIPANTES').find(p=>p.ViagemID===viagemId && p.PessoaID===person.PessoaID && p.Status!=='CANCELADO');
       if(!part) {
         const fare=line.valorPassagemNum==null?'':line.valorPassagemNum;
         const id=newId_('PV');
         participantSheet.appendRow([id,viagemId,person.PessoaID,'PENDENTE','','',fare,line.observacoes,new Date(),new Date(),line.numeroInscricao]);
-        part={ParticipacaoID:id,ValorPrevisto:fare};linked++;
+        part={ParticipacaoID:id,ValorPrevisto:fare};
+        linked++;
       } else {
         const row=findRowById_(participantSheet,'ParticipacaoID',part.ParticipacaoID);
         const headers=participantSheet.getRange(1,1,1,participantSheet.getLastColumn()).getDisplayValues()[0];
@@ -237,12 +260,12 @@ function applySmartImport(viagemId, sheets, decisions) {
         if(!already) {
           paymentSheet.appendRow([newId_('PG'),part.ParticipacaoID,date,line.valorPagoNum,line.formaPagamento,'',line.observacoes,new Date()]);
           payments++;
-        } else duplicates++;
+        }
       }
       imported++;
     });
     SpreadsheetApp.flush();
-    return {importados:imported,pessoasCriadas:created,participantesVinculados:linked,pagamentosCriados:payments,duplicados:duplicates,erros:preview.erros,aba:preview.abaEscolhida};
+    return {importados:imported,pessoasCriadas:created,participantesVinculados:linked,pagamentosCriados:payments,linhasApagadasDaImportacao:removed,erros:preview.erros,aba:preview.abaEscolhida};
   });
 }
 
