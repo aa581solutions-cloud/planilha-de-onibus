@@ -726,6 +726,7 @@ function previewBatchImport(tipo, viagemId, matriz) {
 function applyBatchImport(tipo, viagemId, matriz) {
   return withLock_(() => {
     const preview = previewBatchImport(tipo, viagemId, matriz);
+    if (preview.duplicados > 0) throw new Error('Foram encontradas '+preview.duplicados+' possíveis duplicidades. Nenhuma delas será descartada automaticamente. Use a Importação Inteligente para revisar, mesclar, editar, salvar como novo ou apagar cada linha.');
     const headers = matriz[0].map(h => norm_(h));
     const idx = names => headers.findIndex(h => names.includes(h));
     const col = {nome:idx(['nome','nome completo','passageiro','pessoa']),pessoaId:idx(['pessoaid','id pessoa','id']),
