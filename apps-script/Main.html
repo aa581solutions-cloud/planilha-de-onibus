@@ -343,7 +343,7 @@ function showSmartImportPreview(sheets){
       const field=(key,label,value)=>'<label style="display:inline-block;min-width:180px;margin:5px 8px 5px 0">'+esc(label)+'<input data-smart-edit="'+id+'" data-field="'+key+'" value="'+esc(value==null?'':value)+'" style="display:block;width:100%;padding:7px;border:1px solid #b8d2ef;border-radius:6px"></label>';
       const candidates=x.candidatos||[];
       const candidateOptions='<option value="">Selecione o cadastro existente</option>'+candidates.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nome)+' — '+esc(p.telefone||p.documento||p.id)+'</option>').join('');
-      const actionOptions='<option value="">Escolha uma decisão</option><option value="merge">Mesclar com cadastro existente</option><option value="save">Salvar como novo cadastro</option><option value="delete">Apagar esta linha da importação</option>';
+      const actionOptions='<option value="">Escolha uma decisão</option><option value="merge" '+(candidates.length?'':'disabled')+'>Mesclar com cadastro existente</option><option value="save">Salvar como novo cadastro</option><option value="delete">Apagar esta linha da importação</option>';
       return '<section style="border:1px solid #e0a23b;border-radius:8px;padding:12px;margin:12px 0;background:#fffaf0"><b>Revisão necessária — linha '+x.sourceRow+'</b><p>'+esc(x.motivo||'Possível duplicidade')+'</p>'+
         '<label>Decisão<select data-smart-action="'+id+'" style="display:block;width:100%;padding:8px;margin:5px 0 10px">'+actionOptions+'</select></label>'+
         '<label>Cadastro para mesclar<select data-smart-person="'+id+'" style="display:block;width:100%;padding:8px;margin:5px 0 10px">'+candidateOptions+'</select></label>'+
