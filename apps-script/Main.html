@@ -339,29 +339,48 @@ function showSmartImportPreview(sheets){
   google.script.run.withSuccessHandler(r=>{
     pendingImport={type:'integral',sheets:sheets,tripId:activeTripId};
     const decisions=r.linhas.filter(x=>x.status==='REVISAR').map(x=>{
-      const opts='<option value="">Escolha como tratar</option><option value="skip">Não importar esta linha</option><option value="new">Cadastrar como pessoa nova</option>'+x.candidatos.map(p=>'<option value="'+esc(p.id)+'">Associar a '+esc(p.nome)+' — '+esc(p.telefone||p.documento||p.id)+'</option>').join('');
-      return '<label style="display:block;margin:8px 0">Linha '+x.sourceRow+' — '+esc(x.nome)+'<select data-smart-decision="'+esc(x.rowId)+'" style="display:block;width:100%;margin-top:4px">'+opts+'</select><small>'+esc(x.motivo)+'</small></label>'
+      const id=esc(x.rowId);
+      const field=(key,label,value)=>'<label style="display:inline-block;min-width:180px;margin:5px 8px 5px 0">'+esc(label)+'<input data-smart-edit="'+id+'" data-field="'+key+'" value="'+esc(value==null?'':value)+'" style="display:block;width:100%;padding:7px;border:1px solid #b8d2ef;border-radius:6px"></label>';
+      const candidates=x.candidatos||[];
+      const candidateOptions='<option value="">Selecione o cadastro existente</option>'+candidates.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nome)+' — '+esc(p.telefone||p.documento||p.id)+'</option>').join('');
+      const actionOptions='<option value="">Escolha uma decisão</option><option value="merge">Mesclar com cadastro existente</option><option value="save">Salvar como novo cadastro</option><option value="delete">Apagar esta linha da importação</option>';
+      return '<section style="border:1px solid #e0a23b;border-radius:8px;padding:12px;margin:12px 0;background:#fffaf0"><b>Revisão necessária — linha '+x.sourceRow+'</b><p>'+esc(x.motivo||'Possível duplicidade')+'</p>'+
+        '<label>Decisão<select data-smart-action="'+id+'" style="display:block;width:100%;padding:8px;margin:5px 0 10px">'+actionOptions+'</select></label>'+
+        '<label>Cadastro para mesclar<select data-smart-person="'+id+'" style="display:block;width:100%;padding:8px;margin:5px 0 10px">'+candidateOptions+'</select></label>'+
+        '<div><b>Editar dados antes de salvar</b><div style="display:flex;flex-wrap:wrap">'+
+        field('nome','Nome',x.nome)+field('numeroInscricao','Nº inscrição',x.numeroInscricao)+field('documento','Documento',x.documento)+field('telefone','Telefone',x.telefone)+
+        field('dataPagamento','Data pagamento',x.dataPagamento)+field('valorPassagem','Valor passagem',x.valorPassagem)+field('valorPago','Valor pago',x.valorPago)+field('formaPagamento','Forma pagamento',x.formaPagamento)+
+        field('saldo','Saldo informado',x.saldo)+field('observacoes','Observações',x.observacoes)+
+        '</div></div></section>';
     }).join('');
     const summary='<p><b>Aba selecionada:</b> '+esc(r.abaEscolhida)+' | <b>Abas examinadas:</b> '+esc(r.abasAnalisadas.join(', '))+'</p>'+
       '<p><b>Campos encontrados:</b> '+esc(r.campos.join(', '))+'<br><b>Campos ausentes:</b> '+esc(r.camposAusentes.join(', ')||'nenhum')+'</p>'+
-      '<p><b>Novos:</b> '+r.novos+' | <b>Correspondência:</b> '+r.associar+' | <b>Conferir:</b> '+r.revisar+' | <b>Já inscritos:</b> '+r.duplicados+' | <b>Sem nome:</b> '+r.erros+'</p>';
+      '<p><b>Novos:</b> '+r.novos+' | <b>Correspondências:</b> '+r.associar+' | <b>Em revisão:</b> '+r.revisar+' | <b>Sem nome:</b> '+r.erros+'</p>';
     const rows=r.linhas.map(x=>[x.sourceRow,x.numeroInscricao||'—',x.nome||'—',x.status,x.motivo||'',x.valorPassagem||'',x.valorPago||'',x.saldo||'',x.saldoCalculado==null?'—':x.saldoCalculado.toLocaleString('pt-BR',{minimumFractionDigits:2}),x.divergenciaSaldo?'DIVERGÊNCIA':'']);
-    $('importPreview').innerHTML=summary+table(['Linha','Nº inscrição','Nome','Resultado','Conferência','Passagem','Pago','Saldo origem','Saldo calculado','Comparação'],rows)+(decisions?'<h3>Decida os possíveis homônimos</h3>'+decisions:'');
+    $('importPreview').innerHTML=summary+table(['Linha','Nº inscrição','Nome','Resultado','Conferência','Passagem','Pago','Saldo origem','Saldo calculado','Comparação'],rows)+(decisions?'<h3>Revisar possíveis duplicidades e conflitos</h3>'+decisions:'');
     $('applyImportBtn').disabled=r.prontos===0&&r.revisar===0;
-    msg('importStatus','Prévia pronta. Nenhum dado foi gravado. Revise as correspondências antes de confirmar.');
+    msg('importStatus','Prévia pronta. Nada foi gravado. Resolva cada revisão antes de confirmar.');
   }).withFailureHandler(e=>msg('importStatus','Erro na análise: '+e.message)).previewSmartImport(activeTripId,sheets)
 }
 function confirmImportData(){
   if(!pendingImport)return;
   if(pendingImport.type==='integral'){
     const decisions={};
-    const controls=[...document.querySelectorAll('[data-smart-decision]')];
-    for(const el of controls){if(!el.value){msg('importStatus','Resolva todas as possíveis duplicidades antes de confirmar.');return}decisions[el.dataset.smartDecision]=el.value}
+    const actions=[...document.querySelectorAll('[data-smart-action]')];
+    for(const el of actions){
+      const id=el.dataset.smartAction, action=el.value;
+      if(!action){msg('importStatus','Escolha uma decisão para cada registro em revisão.');return}
+      const person=document.querySelector('[data-smart-person="'+id+'"]');
+      if(action==='merge' && (!person || !person.value)){msg('importStatus','Selecione o cadastro que receberá cada mesclagem.');return}
+      const edits={};
+      document.querySelectorAll('[data-smart-edit="'+id+'"]').forEach(input=>{edits[input.dataset.field]=input.value});
+      decisions[id]={action:action,personId:person?person.value:'',edits:edits};
+    }
     if(!confirm('Confirmar a importação inteligente para a viagem selecionada? A planilha original não será alterada.'))return;
     const p=pendingImport;
     $('applyImportBtn').disabled=true;
     google.script.run.withSuccessHandler(r=>{
-      msg('importStatus','Importação concluída: '+r.importados+' linhas; '+r.pessoasCriadas+' pessoas novas; '+r.participantesVinculados+' inscrições; '+r.pagamentosCriados+' pagamentos; '+r.duplicados+' duplicidades ignoradas.');
+      msg('importStatus','Importação concluída: '+r.importados+' linhas; '+r.pessoasCriadas+' pessoas novas; '+r.participantesVinculados+' inscrições; '+r.pagamentosCriados+' pagamentos; '+r.linhasApagadasDaImportacao+' linhas removidas da importação.');
       pendingImport=null;$('importPreview').innerHTML='';refresh()
     }).withFailureHandler(e=>{$('applyImportBtn').disabled=false;msg('importStatus','Erro na importação: '+e.message)}).applySmartImport(p.tripId,p.sheets,decisions);
     return;
