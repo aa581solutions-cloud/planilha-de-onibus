@@ -35,7 +35,8 @@ Se um campo não existir ou estiver vazio, deixar o dado correspondente em branc
    - **Editar:** corrigir os dados apresentados antes de decidir.
    - **Salvar como novo:** manter um cadastro separado, inclusive quando o nome for semelhante.
    - **Apagar da importação:** retirar somente a linha recebida da operação atual. Não apagar automaticamente cadastros ou histórico já salvos.
-7. A confirmação deve ser bloqueada enquanto houver revisão sem decisão.
+7. Pagamentos com mesma participação, data, valor e forma também são possíveis duplicidades: devem ser sinalizados para revisão. O usuário pode confirmar explicitamente o lançamento de outro pagamento igual quando forem parcelas legítimas.
+8. A confirmação deve ser bloqueada enquanto houver revisão sem decisão.
 
 ## Integração financeira
 - Valor da passagem alimenta ValorPrevisto quando informado.
