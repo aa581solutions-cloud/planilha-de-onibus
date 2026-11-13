@@ -178,6 +178,15 @@ function previewSmartImport(viagemId, sheets) {
     if(line.status==='ERRO') return;
     const existing=rows_('PARTICIPANTES').find(p=>p.ViagemID===viagemId && p.Status!=='CANCELADO' && line.candidatos.some(c=>c.id===p.PessoaID));
     if(line.status==='ASSOCIAR' && existing){line.jaInscrito=true;line.status='REVISAR';line.motivo='Pessoa já vinculada à viagem; revise se os dados e pagamentos devem ser mesclados ou mantidos separados.';}
+    if(existing && line.valorPagoNum!=null && line.valorPagoNum>0) {
+      const date=line.dataPagamentoValue ? importDateKey_(line.dataPagamentoValue) : '';
+      const duplicatePayment=rows_('PAGAMENTOS').some(p=>p.ParticipacaoID===existing.ParticipacaoID && importDateKey_(p.Data)===date && Number(p.Valor||0)===line.valorPagoNum && norm_(p.Forma)===norm_(line.formaPagamento) && norm_(p.Observacoes)===norm_(line.observacoes));
+      if(duplicatePayment) {
+        line.possivelPagamentoDuplicado=true;
+        line.status='REVISAR';
+        line.motivo=(line.motivo?line.motivo+' | ':'')+'Já existe pagamento com mesma participação, data, valor e forma; confirme se é reimportação ou outro pagamento legítimo.';
+      }
+    }
     if(line.status==='NOVO'){
       const existingName=rows_('PESSOAS').filter(p=>p.Status!=='INATIVO' && norm_(p.Nome)===norm_(line.nome));
       if(existingName.length){line.status='REVISAR';line.motivo='Já existe pessoa com este nome; confirme se é a mesma pessoa.';line.candidatos=existingName.map(p=>({id:p.PessoaID,nome:p.Nome,telefone:p.Telefone||'',documento:p.NumeroDocumento||''}));}
@@ -278,7 +287,7 @@ function applySmartImport(viagemId, sheets, decisions) {
         const date=line.dataPagamentoValue ? importDateValue_(line.dataPagamentoValue) : '';
         const signature=[part.ParticipacaoID,date?importDateKey_(date):'',line.valorPagoNum,norm_(line.formaPagamento),norm_(line.observacoes)].join('|');
         const already=rows_('PAGAMENTOS').some(p=>[p.ParticipacaoID,importDateKey_(p.Data),Number(p.Valor||0),norm_(p.Forma),norm_(p.Observacoes)].join('|')===signature);
-        if(!already) {
+        if(!already || (decision && decision.allowDuplicatePayment===true)) {
           paymentSheet.appendRow([newId_('PG'),part.ParticipacaoID,date,line.valorPagoNum,line.formaPagamento,'',line.observacoes,new Date()]);
           payments++;
         }
