@@ -20,6 +20,7 @@ Permitir importar uma planilha Excel ou CSV como fonte única de pessoas, inscri
 - Forma de pagamento.
 - Saldo.
 - Observações.
+- Número original da inscrição (`Nº`), armazenado no vínculo da pessoa com a viagem quando disponível.
 
 Se um campo não existir ou estiver vazio, deixar o dado correspondente em branco. Não inventar datas, valores ou formas de pagamento. Linha sem Nome não é importada.
 
@@ -61,4 +62,5 @@ Se um campo não existir ou estiver vazio, deixar o dado correspondente em branc
 12. Documento ou telefone coincidente.
 13. Pessoa já inscrita na viagem.
 14. Reimportação sem duplicar pagamentos.
+16. Preservação do número de inscrição original (`Nº`) na participação.
 15. Saldo da origem diferente do saldo calculado.
