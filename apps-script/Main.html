@@ -347,6 +347,7 @@ function showSmartImportPreview(sheets){
       return '<section style="border:1px solid #e0a23b;border-radius:8px;padding:12px;margin:12px 0;background:#fffaf0"><b>Revisão necessária — linha '+x.sourceRow+'</b><p>'+esc(x.motivo||'Possível duplicidade')+'</p>'+
         '<label>Decisão<select data-smart-action="'+id+'" style="display:block;width:100%;padding:8px;margin:5px 0 10px">'+actionOptions+'</select></label>'+
         '<label>Cadastro para mesclar<select data-smart-person="'+id+'" style="display:block;width:100%;padding:8px;margin:5px 0 10px">'+candidateOptions+'</select></label>'+
+        (x.possivelPagamentoDuplicado?'<label style="display:block;margin:8px 0"><input type="checkbox" data-smart-duplicate-payment="'+id+'"> Registrar este pagamento mesmo havendo outro com os mesmos dados</label>':'')+
         '<div><b>Editar dados antes de salvar</b><div style="display:flex;flex-wrap:wrap">'+
         field('nome','Nome',x.nome)+field('numeroInscricao','Nº inscrição',x.numeroInscricao)+field('documento','Documento',x.documento)+field('telefone','Telefone',x.telefone)+
         field('dataPagamento','Data pagamento',x.dataPagamento)+field('valorPassagem','Valor passagem',x.valorPassagem)+field('valorPago','Valor pago',x.valorPago)+field('formaPagamento','Forma pagamento',x.formaPagamento)+
@@ -374,7 +375,8 @@ function confirmImportData(){
       if(action==='merge' && (!person || !person.value)){msg('importStatus','Selecione o cadastro que receberá cada mesclagem.');return}
       const edits={};
       document.querySelectorAll('[data-smart-edit="'+id+'"]').forEach(input=>{edits[input.dataset.field]=input.value});
-      decisions[id]={action:action,personId:person?person.value:'',edits:edits};
+      const duplicatePayment=document.querySelector('[data-smart-duplicate-payment="'+id+'"]');
+      decisions[id]={action:action,personId:person?person.value:'',edits:edits,allowDuplicatePayment:!!(duplicatePayment&&duplicatePayment.checked)};
     }
     if(!confirm('Confirmar a importação inteligente para a viagem selecionada? A planilha original não será alterada.'))return;
     const p=pendingImport;
