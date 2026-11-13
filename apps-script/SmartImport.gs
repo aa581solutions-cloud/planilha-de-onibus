@@ -18,7 +18,8 @@ function smartAliases_() {
     valorPago: ['valorpago','totalpago','pagamento','valordopagamento','valorrecebido','pago'],
     formaPagamento: ['formapagamento','formadepagamento','meiodepagamento','forma','tipopagamento'],
     saldo: ['saldo','saldoapagar','valorpedente','restante','valoremaberto'],
-    observacoes: ['observacoes','observacao','obs','notas','comentarios','comentario']
+    observacoes: ['observacoes','observacao','obs','notas','comentarios','comentario'],
+    numeroInscricao: ['numeroinscricao','numerodainscricao','inscricao','inscricaonumero','ninscricao','numero','n']
   };
 }
 
@@ -96,7 +97,8 @@ function smartAnalyzeSheets_(sheets) {
       valorPago: smartValue_(line,col.valorPago),
       formaPagamento: smartValue_(line,col.formaPagamento),
       saldo: smartValue_(line,col.saldo),
-      observacoes: smartValue_(line,col.observacoes)
+      observacoes: smartValue_(line,col.observacoes),
+      numeroInscricao: smartValue_(line,col.numeroInscricao)
     };
     if (!row.nome) {
       output.push({...row,status:'ERRO',motivo:'Nome não informado; esta linha não pode ser importada.',candidatos:[]});
@@ -189,11 +191,14 @@ function applySmartImport(viagemId, sheets, decisions) {
       if(!part) {
         const fare=line.valorPassagemNum==null?'':line.valorPassagemNum;
         const id=newId_('PV');
-        participantSheet.appendRow([id,viagemId,person.PessoaID,'PENDENTE','','',fare,line.observacoes,new Date(),new Date()]);
+        participantSheet.appendRow([id,viagemId,person.PessoaID,'PENDENTE','','',fare,line.observacoes,new Date(),new Date(),line.numeroInscricao]);
         part={ParticipacaoID:id,ValorPrevisto:fare};linked++;
-      } else if(line.valorPassagemNum!=null && Number(part.ValorPrevisto||0)===0) {
+      } else {
         const row=findRowById_(participantSheet,'ParticipacaoID',part.ParticipacaoID);
-        participantSheet.getRange(row,7).setValue(line.valorPassagemNum);
+        const headers=participantSheet.getRange(1,1,1,participantSheet.getLastColumn()).getDisplayValues()[0];
+        if(line.valorPassagemNum!=null && Number(part.ValorPrevisto||0)===0) participantSheet.getRange(row,7).setValue(line.valorPassagemNum);
+        const numCol=headers.indexOf('NumeroInscricao')+1;
+        if(numCol>0 && line.numeroInscricao && !clean_(participantSheet.getRange(row,numCol).getValue())) participantSheet.getRange(row,numCol).setValue(line.numeroInscricao);
       }
       if(line.valorPagoNum!=null && line.valorPagoNum>0) {
         const date=line.dataPagamentoValue || '';
