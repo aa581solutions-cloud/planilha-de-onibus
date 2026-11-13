@@ -10,10 +10,10 @@ function smartHeaderKey_(value) {
 function smartAliases_() {
   return {
     nome: ['nome','nomecompleto','passageiro','pessoa','nomedopassageiro','nomedapessoa'],
-    telefone: ['telefone','celular','whatsapp','fone','numerodetelefone','contato'],
-    documento: ['documento','cpf','rg','numerodocumento','documentoidentidade','identidade'],
+    telefone: ['telefone','celular','whatsapp','fone','numerodetelefone','numerodotelefone','contato'],
+    documento: ['documento','documentodapessoa','cpf','cnpj','rg','numerodocumento','numerododocumento','documentoidentidade','identidade'],
     tipoDocumento: ['tipodocumento','tipode documento','tipodedocumento'],
-    dataPagamento: ['datapagamento','data','datadopagamento','pagamentoem','datapagto'],
+    dataPagamento: ['datapagamento','datadepagamento','data','datadopagamento','pagamentoem','datapagto','datapagamento'],
     valorPassagem: ['valorpassagem','valordapassagem','passagem','valorprevisto','valortotal','valorviagem'],
     valorPago: ['valorpago','totalpago','pagamento','valordopagamento','valorrecebido','pago'],
     formaPagamento: ['formapagamento','formadepagamento','meiodepagamento','forma','tipopagamento'],
@@ -24,7 +24,6 @@ function smartAliases_() {
 
 function smartFindHeader_(values) {
   const aliases = smartAliases_();
-  const required = new Set(['nome']);
   let best = null;
   const scan = Math.min(values.length, 20);
   for (let r = 0; r < scan; r++) {
@@ -80,8 +79,6 @@ function smartAnalyzeSheets_(sheets) {
   const chosen = candidates[0];
   const col = chosen.header.columns;
   const people = rows_('PESSOAS').filter(p=>p.Status!=='INATIVO');
-  const parts = rows_('PARTICIPANTES');
-  const tripId = '';
   const output = [];
   const seenSourceNames = new Set();
   for (let i=chosen.header.row+1;i<chosen.values.length;i++) {
