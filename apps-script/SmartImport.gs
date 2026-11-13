@@ -83,6 +83,7 @@ function smartAnalyzeSheets_(sheets) {
   const parts = rows_('PARTICIPANTES');
   const tripId = '';
   const output = [];
+  const seenSourceNames = new Set();
   for (let i=chosen.header.row+1;i<chosen.values.length;i++) {
     const line=chosen.values[i] || [];
     if (!line.some(v=>clean_(v)!=='')) continue;
@@ -105,6 +106,8 @@ function smartAnalyzeSheets_(sheets) {
       continue;
     }
     const doc=smartDigits_(row.documento), phone=smartDigits_(row.telefone), name=norm_(row.nome);
+    if (seenSourceNames.has(name) && !doc && !phone) { output.push({...row,status:'REVISAR',motivo:'Nome repetido no próprio arquivo; confirme se é a mesma pessoa.',candidatos:[]}); continue; }
+    seenSourceNames.add(name);
     const exactDoc=doc?people.filter(p=>smartDigits_(p.NumeroDocumento)===doc):[];
     const exactPhone=phone?people.filter(p=>smartDigits_(p.Telefone)===phone):[];
     let candidates=[];
@@ -120,13 +123,16 @@ function smartAnalyzeSheets_(sheets) {
       });
       if (candidates.length) {status='REVISAR';motivo='Nome igual ou semelhante; confirme se é a mesma pessoa ou um homônimo.';}
     }
-    const fare=smartMoney_(row.valorPassagem), paid=smartMoney_(row.valorPago);
-    let date='';
-    if(row.dataPagamento) date=smartDate_(row.dataPagamento);
+    let fare=null, paid=null, date='';
+    try { fare=smartMoney_(row.valorPassagem); paid=smartMoney_(row.valorPago); if(row.dataPagamento) date=smartDate_(row.dataPagamento); }
+    catch(e) { status='ERRO'; motivo=e.message; }
     if (status!=='ERRO') {
       row.valorPassagemNum=fare;
       row.valorPagoNum=paid;
       row.dataPagamentoValue=date;
+      row.saldoOrigemNum=row.saldo===''?null:smartMoney_(row.saldo);
+      row.saldoCalculado=fare==null?null:Math.max(0,fare-(paid||0));
+      row.divergenciaSaldo=row.saldoOrigemNum!=null && row.saldoCalculado!=null && Math.abs(row.saldoOrigemNum-row.saldoCalculado)>0.01;
       row.candidatos=candidates.map(p=>({id:p.PessoaID,nome:p.Nome,telefone:p.Telefone||'',documento:p.NumeroDocumento||''}));
       row.status=status;row.motivo=motivo;
     }
@@ -147,11 +153,7 @@ function previewSmartImport(viagemId, sheets) {
       const existingName=rows_('PESSOAS').filter(p=>p.Status!=='INATIVO' && norm_(p.Nome)===norm_(line.nome));
       if(existingName.length){line.status='REVISAR';line.motivo='Já existe pessoa com este nome; confirme se é a mesma pessoa.';line.candidatos=existingName.map(p=>({id:p.PessoaID,nome:p.Nome,telefone:p.Telefone||'',documento:p.NumeroDocumento||''}));}
     }
-    line.financeiro={
-      previsto:line.valorPassagemNum,
-      pago:line.valorPagoNum,
-      saldoOrigem:line.saldo===''?null:smartMoney_(line.saldo)
-    };
+    line.financeiro={previsto:line.valorPassagemNum,pago:line.valorPagoNum,saldoOrigem:line.saldoOrigemNum,saldoCalculado:line.saldoCalculado,divergenciaSaldo:!!line.divergenciaSaldo};
   });
   result.viagemId=viagemId;
   result.prontos=result.linhas.filter(x=>['NOVO','ASSOCIAR'].includes(x.status)).length;
@@ -189,7 +191,7 @@ function applySmartImport(viagemId, sheets, decisions) {
       }
       let part=rows_('PARTICIPANTES').find(p=>p.ViagemID===viagemId && p.PessoaID===person.PessoaID && p.Status!=='CANCELADO');
       if(!part) {
-        const fare=line.valorPassagemNum==null?0:line.valorPassagemNum;
+        const fare=line.valorPassagemNum==null?'':line.valorPassagemNum;
         const id=newId_('PV');
         participantSheet.appendRow([id,viagemId,person.PessoaID,'PENDENTE','','',fare,line.observacoes,new Date(),new Date()]);
         part={ParticipacaoID:id,ValorPrevisto:fare};linked++;
