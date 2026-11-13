@@ -345,8 +345,8 @@ function showSmartImportPreview(sheets){
     const summary='<p><b>Aba selecionada:</b> '+esc(r.abaEscolhida)+' | <b>Abas examinadas:</b> '+esc(r.abasAnalisadas.join(', '))+'</p>'+
       '<p><b>Campos encontrados:</b> '+esc(r.campos.join(', '))+'<br><b>Campos ausentes:</b> '+esc(r.camposAusentes.join(', ')||'nenhum')+'</p>'+
       '<p><b>Novos:</b> '+r.novos+' | <b>Correspondência:</b> '+r.associar+' | <b>Conferir:</b> '+r.revisar+' | <b>Já inscritos:</b> '+r.duplicados+' | <b>Sem nome:</b> '+r.erros+'</p>';
-    const rows=r.linhas.map(x=>[x.sourceRow,x.nome||'—',x.status,x.motivo||'',x.valorPassagem||'',x.valorPago||'',x.saldo||'',x.saldoCalculado==null?'—':x.saldoCalculado.toLocaleString('pt-BR',{minimumFractionDigits:2}),x.divergenciaSaldo?'DIVERGÊNCIA':'']);
-    $('importPreview').innerHTML=summary+table(['Linha','Nome','Resultado','Conferência','Passagem','Pago','Saldo origem','Saldo calculado','Comparação'],rows)+(decisions?'<h3>Decida os possíveis homônimos</h3>'+decisions:'');
+    const rows=r.linhas.map(x=>[x.sourceRow,x.numeroInscricao||'—',x.nome||'—',x.status,x.motivo||'',x.valorPassagem||'',x.valorPago||'',x.saldo||'',x.saldoCalculado==null?'—':x.saldoCalculado.toLocaleString('pt-BR',{minimumFractionDigits:2}),x.divergenciaSaldo?'DIVERGÊNCIA':'']);
+    $('importPreview').innerHTML=summary+table(['Linha','Nº inscrição','Nome','Resultado','Conferência','Passagem','Pago','Saldo origem','Saldo calculado','Comparação'],rows)+(decisions?'<h3>Decida os possíveis homônimos</h3>'+decisions:'');
     $('applyImportBtn').disabled=r.prontos===0&&r.revisar===0;
     msg('importStatus','Prévia pronta. Nenhum dado foi gravado. Revise as correspondências antes de confirmar.');
   }).withFailureHandler(e=>msg('importStatus','Erro na análise: '+e.message)).previewSmartImport(activeTripId,sheets)
