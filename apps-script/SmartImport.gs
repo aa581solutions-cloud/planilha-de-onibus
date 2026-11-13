@@ -170,8 +170,9 @@ function applySmartImport(viagemId, sheets, decisions) {
     const peopleSheet=sheet_('PESSOAS'), participantSheet=sheet_('PARTICIPANTES'), paymentSheet=sheet_('PAGAMENTOS');
     preview.linhas.forEach(line=>{
       if(line.status==='ERRO'||line.status==='DUPLICADO') return;
-      let person=null;
       const decision=choice[line.rowId] || (line.status==='ASSOCIAR' ? line.candidatos[0].id : 'new');
+      if(decision==='skip') return;
+      let person=null;
       if(decision==='new') {
         const existing=rows_('PESSOAS').filter(p=>p.Status!=='INATIVO' && norm_(p.Nome)===norm_(line.nome));
         if(existing.length && line.status!=='REVISAR') throw new Error('O cadastro '+line.nome+' mudou após a prévia. Gere uma nova prévia.');
