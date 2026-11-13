@@ -5,7 +5,7 @@
 - Adicionada importação inteligente de Excel/CSV com identificação da aba pelo conteúdo dos cabeçalhos, sem depender do nome da aba.
 - Somente o campo Nome é obrigatório; demais campos são opcionais e permanecem vazios quando ausentes.
 - XLSX agora é lido em todas as abas e a melhor correspondência de cabeçalhos é selecionada automaticamente.
-- Adicionados mapeamentos flexíveis para nome, telefone, documento, data de pagamento, valor da passagem, valor pago, forma de pagamento, saldo e observações.
+- Adicionados mapeamentos flexíveis para nome, telefone, documento, data de pagamento, valor da passagem, valor pago, forma de pagamento, saldo e observações, incluindo os cabeçalhos `Passagem`, `Pagamento` e `Saldo/Troco`.
 - Adicionada revisão de nomes iguais/semelhantes; documento e telefone são usados como identificadores fortes. Casos ambíguos exigem decisão humana.
 - A importação inteligente cria/associa pessoas, vincula à viagem ativa, registra o valor previsto quando disponível e lança pagamentos somente quando há valor pago.
 - Pagamento sem data é preservado com data em branco; campos financeiros ausentes não são inventados.
