@@ -537,7 +537,7 @@ function listParticipants(viagemId) {
       return {
         id: r.ParticipacaoID, pessoaId: r.PessoaID,
         nome: person ? person.Nome : '(cadastro não localizado)',
-        status: r.Status, veiculoId: r.VeiculoID, assento: r.NumeroAssento,
+        status: r.Status, veiculoId: r.VeiculoID, assento: r.NumeroAssento, numeroInscricao: r.NumeroInscricao || '',
         previsto: totals.previsto, pago: totals.pago, saldo: totals.saldo
       };
     });
@@ -601,7 +601,7 @@ function getReportData(viagemId,tipo){
   const data=parts.map(p=>{
     const person=people.find(x=>x.PessoaID===p.PessoaID)||{}, vehicle=vehicles.find(x=>x.VeiculoID===p.VeiculoID)||{};
     const payments=pays.filter(x=>x.ParticipacaoID===p.ParticipacaoID), paid=payments.reduce((s,x)=>s+Number(x.Valor||0),0), expected=Number(p.ValorPrevisto||0);
-    return {id:p.ParticipacaoID,nome:person.Nome||'(não localizado)',telefone:person.Telefone||'',status:p.Status,veiculo:vehicle.Identificacao||'',tipoVeiculo:vehicle.Tipo||'',assento:p.NumeroAssento||'',previsto:expected,pago:paid,saldo:Math.max(0,expected-paid),pagamentos:payments.map(x=>({data:reportDate_(x.Data),valor:Number(x.Valor||0),forma:x.Forma||'',referencia:x.Referencia||''}))};
+    return {id:p.ParticipacaoID,nome:person.Nome||'(não localizado)',telefone:person.Telefone||'',numeroInscricao:p.NumeroInscricao||'',status:p.Status,veiculo:vehicle.Identificacao||'',tipoVeiculo:vehicle.Tipo||'',assento:p.NumeroAssento||'',previsto:expected,pago:paid,saldo:Math.max(0,expected-paid),pagamentos:payments.map(x=>({data:reportDate_(x.Data),valor:Number(x.Valor||0),forma:x.Forma||'',referencia:x.Referencia||''}))};
   });
   const titles={geral:'Lista geral de participantes',veiculo:'Lista por veículo e assento',capitao:'Lista do capitão',pagamentos:'Lista de pagamentos',confirmados:'Lista de passageiros confirmados',resumo:'Resumo geral da viagem'};
   if(!titles[tipo]) throw new Error('Tipo de lista inválido.');
