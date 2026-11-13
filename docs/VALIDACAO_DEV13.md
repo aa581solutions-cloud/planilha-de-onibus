@@ -25,6 +25,12 @@
 - A importação em lote legada é bloqueada quando detecta duplicidades e direciona o usuário à Importação Inteligente, evitando descarte silencioso.
 - O backend bloqueia a confirmação quando uma linha em revisão não possui decisão.
 
+## Correção adicional da revisão estática
+
+- Mapeamento do órgão emissor do documento adicionado à importação inteligente.
+- O órgão emissor e o tipo de documento podem ser corrigidos na tela de revisão.
+- Ao mesclar, campos editados expressamente podem atualizar tipo e órgão emissor; ao criar pessoa, o órgão emissor é gravado no campo próprio.
+
 ## Limites desta validação
 
 Os testes de sintaxe e os seis testes puros foram executados em ambiente isolado. Eles não representam teste de ponta a ponta dentro de uma planilha Google real. Permanecem pendentes:
