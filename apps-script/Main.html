@@ -349,7 +349,7 @@ function showSmartImportPreview(sheets){
         '<label>Cadastro para mesclar<select data-smart-person="'+id+'" style="display:block;width:100%;padding:8px;margin:5px 0 10px">'+candidateOptions+'</select></label>'+
         (x.possivelPagamentoDuplicado?'<label style="display:block;margin:8px 0"><input type="checkbox" data-smart-duplicate-payment="'+id+'"> Registrar este pagamento mesmo havendo outro com os mesmos dados</label>':'')+
         '<div><b>Editar dados antes de salvar</b><div style="display:flex;flex-wrap:wrap">'+
-        field('nome','Nome',x.nome)+field('numeroInscricao','Nº inscrição',x.numeroInscricao)+field('documento','Documento',x.documento)+field('telefone','Telefone',x.telefone)+
+        field('nome','Nome',x.nome)+field('numeroInscricao','Nº inscrição',x.numeroInscricao)+field('tipoDocumento','Tipo documento',x.tipoDocumento)+field('documento','Documento',x.documento)+field('orgaoEmissor','Órgão emissor',x.orgaoEmissor)+field('telefone','Telefone',x.telefone)+
         field('dataPagamento','Data pagamento',x.dataPagamento)+field('valorPassagem','Valor passagem',x.valorPassagem)+field('valorPago','Valor pago',x.valorPago)+field('formaPagamento','Forma pagamento',x.formaPagamento)+
         field('saldo','Saldo informado',x.saldo)+field('observacoes','Observações',x.observacoes)+
         '</div></div></section>';
