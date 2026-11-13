@@ -12,7 +12,7 @@
 - Pagamento sem data é preservado com data em branco; campos financeiros ausentes não são inventados.
 - Prévia compara saldo de origem com saldo calculado e aponta divergências.
 - Reimportações verificam inscrições e pagamentos equivalentes; casos que exigem decisão devem passar por revisão manual.
-- Mantida a importação antiga como opção legada para compatibilidade.
+- Mantida a importação antiga como opção legada para compatibilidade; se ela detectar possíveis duplicidades, bloqueia a gravação e direciona para a Importação Inteligente, evitando descartá-las silenciosamente.
 - A versão DEV.12 permanece preservada como base anterior.
 
 — Sistema de Viagens
