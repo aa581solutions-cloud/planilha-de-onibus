@@ -5,14 +5,16 @@
 - Sintaxe JavaScript de `Code.gs`: aprovada.
 - Sintaxe JavaScript de `SmartImport.gs`: aprovada.
 - Sintaxe do script de `Main.html`: aprovada.
-- Testes puros de importação: 5 de 5 aprovados.
+- Testes puros de importação: 6 de 6 aprovados.
   - Cabeçalho contendo somente Nome.
   - Cabeçalhos com variações, acentos e número de inscrição.
+  - Cabeçalhos usados em planilhas Betel: `Nº`, `Nome`, `Data pagamento`, `Passagem`, `Valor pago`, `Pagamento` e `Saldo/Troco`.
   - Valor monetário brasileiro.
   - Data brasileira.
   - Campos opcionais vazios.
 - Simulação de linha com apenas Nome: classificada como novo cadastro, sem valor previsto ou pagamento inventado.
 - Simulação de “Adam” diante de cadastro “Adam Alves”: classificada para revisão manual.
+- Valores opcionais inválidos geram aviso e não impedem o cadastro da pessoa.
 - Simulação de linha completa: mapeou Nº 005, data 13/11/2026, passagem R$ 150,00, pago R$ 50,00, PIX e saldo R$ 100,00; saldo calculado coincidiu com a origem.
 - Branch DEV.12 consultada após a criação da DEV.13 e permaneceu identificada como versão 0.1.0-dev.12.
 
