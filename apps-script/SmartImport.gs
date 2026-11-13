@@ -197,6 +197,25 @@ function applySmartImport(viagemId, sheets, decisions) {
     const choice=decisions || {};
     const unresolved=preview.linhas.filter(x=>x.status==='REVISAR' && !choice[x.rowId]);
     if(unresolved.length) throw new Error('Há '+unresolved.length+' registro(s) aguardando revisão. Escolha mesclar, salvar como novo ou apagar da importação.');
+    // Valida todas as decisões e edições antes de gravar qualquer linha, evitando importação parcial por erro previsível.
+    preview.linhas.forEach(line=>{
+      if(line.status==='ERRO') return;
+      const raw=choice[line.rowId];
+      const decision=raw && typeof raw==='object' ? raw : null;
+      const action=decision ? decision.action : (raw || (line.status==='ASSOCIAR' ? 'merge' : 'save'));
+      if(!['merge','save','new','delete','skip'].includes(action)) throw new Error('Decisão inválida na linha '+line.sourceRow+'.');
+      if(action==='delete'||action==='skip') return;
+      const edits=decision && decision.edits ? decision.edits : {};
+      const name=Object.prototype.hasOwnProperty.call(edits,'nome')?clean_(edits.nome):line.nome;
+      if(!name) throw new Error('A linha '+line.sourceRow+' precisa ter Nome.');
+      if(action==='merge') {
+        const personId=decision ? decision.personId : (typeof raw==='string'?raw:(line.status==='ASSOCIAR'&&line.candidatos.length?line.candidatos[0].id:''));
+        if(!personId || !line.candidatos.some(p=>p.id===personId)) throw new Error('Selecione um cadastro válido para mesclar na linha '+line.sourceRow+'.');
+      }
+      if(Object.prototype.hasOwnProperty.call(edits,'valorPassagem') && edits.valorPassagem!=='') smartMoney_(edits.valorPassagem);
+      if(Object.prototype.hasOwnProperty.call(edits,'valorPago') && edits.valorPago!=='') smartMoney_(edits.valorPago);
+      if(Object.prototype.hasOwnProperty.call(edits,'dataPagamento') && edits.dataPagamento) smartDate_(edits.dataPagamento);
+    });
     let imported=0,created=0,linked=0,payments=0,removed=0;
     const peopleSheet=sheet_('PESSOAS'), participantSheet=sheet_('PARTICIPANTES'), paymentSheet=sheet_('PAGAMENTOS');
     preview.linhas.forEach(line=>{
