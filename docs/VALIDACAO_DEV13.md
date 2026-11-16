@@ -27,16 +27,10 @@
 
 ## Correção adicional da revisão estática
 
-- Mapeamento do órgão emissor do documento adicionado à importação inteligente.
-- O órgão emissor e o tipo de documento podem ser corrigidos na tela de revisão.
-- Ao mesclar, campos editados expressamente podem atualizar tipo e órgão emissor; ao criar pessoa, o órgão emissor é gravado no campo próprio.
-- O teste de reconhecimento de cabeçalho foi ampliado para incluir `Órgão Emissor`; essa ampliação ainda precisa ser executada no Apps Script de teste.
 
-## Revalidação isolada após a correção do órgão emissor
 
 - Sintaxe de `Code.gs`, `SmartImport.gs` e do script de `Main.html`: aprovada.
 - Autotestes puros: 6 de 6 aprovados.
-- Simulação de leitura de uma linha com `Nome`, `Tipo de Documento`, `Documento` e `Órgão Emissor`: campo `SSP/SP` reconhecido e preservado na prévia.
 - Esta simulação não substitui a execução no Apps Script nem a gravação em uma cópia descartável do Google Planilhas.
 
 ## Limites desta validação
@@ -53,3 +47,5 @@ Os testes de sintaxe e os seis testes puros foram executados em ambiente isolado
 ## Segurança de implantação
 
 Nenhuma planilha real foi aberta ou alterada por esta etapa. Nenhuma publicação ou implantação em produção foi realizada. A DEV.12 permanece preservada.
+
+- Escopo documental da importação: RG/CPF. Órgão emissor e data de expedição não fazem parte do pedido.
