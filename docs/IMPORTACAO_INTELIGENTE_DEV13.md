@@ -15,7 +15,6 @@ Interpretar diferentes planilhas anexadas, identificar automaticamente os dados 
 - Telefone.
 - Documento/CPF/RG.
 - Tipo de documento.
-- Órgão emissor do documento.
 - Data de pagamento.
 - Valor da passagem (valor previsto).
 - Valor pago.
@@ -73,3 +72,5 @@ Se um campo não existir ou estiver vazio, deixar o dado correspondente em branc
 16. Reimportação sem duplicar pagamentos.
 17. Preservação do número de inscrição na participação.
 18. Saldo da origem diferente do saldo calculado.
+
+- Documento pessoal: importar somente RG/CPF; não solicitar órgão emissor nem data de expedição.
